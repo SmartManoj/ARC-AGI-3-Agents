@@ -123,7 +123,9 @@ class LLM(Agent):
                     create_kwargs["reasoning_effort"] = self.REASONING_EFFORT
                 response = client.chat.completions.create(**create_kwargs)
             except openai.BadRequestError as e:
-                logger.info(f"Message dump: {self.messages}")
+                logger.info(f"Messages saved to messages.json")
+                with open("messages.json", "w") as f:
+                    json.dump(self.messages, f, indent=2)
                 raise e
             self.track_tokens(
                 response.usage.total_tokens, response.choices[0].message.content
@@ -157,7 +159,9 @@ class LLM(Agent):
                     create_kwargs["reasoning_effort"] = self.REASONING_EFFORT
                 response = client.chat.completions.create(**create_kwargs)
             except openai.BadRequestError as e:
-                logger.info(f"Message dump: {self.messages}")
+                logger.info(f"Messages saved to messages.json")
+                with open("messages.json", "w") as f:
+                    json.dump(self.messages, f, indent=2)
                 raise e
             self.track_tokens(response.usage.total_tokens)
             message5 = response.choices[0].message
@@ -195,7 +199,9 @@ class LLM(Agent):
                     create_kwargs["reasoning_effort"] = self.REASONING_EFFORT
                 response = client.chat.completions.create(**create_kwargs)
             except openai.BadRequestError as e:
-                logger.info(f"Message dump: {self.messages}")
+                logger.info(f"Messages saved to messages.json")
+                with open("messages.json", "w") as f:
+                    json.dump(self.messages, f, indent=2)
                 raise e
             self.track_tokens(response.usage.total_tokens)
             message5 = response.choices[0].message
