@@ -21,7 +21,7 @@ class LLM(Agent):
     REASONING_EFFORT: Optional[str] = None
     MODEL_REQUIRES_TOOLS: bool = True
 
-    MESSAGE_LIMIT: int = 10
+    MESSAGE_LIMIT: int = 100
     MODEL: str = os.environ.get("LLM_MODEL_NAME",  "gpt-4o-mini")
     messages: list[dict[str, Any]]
     token_counter: int
@@ -251,17 +251,25 @@ class LLM(Agent):
     def push_message(self, message: dict[str, Any]) -> list[dict[str, Any]]:
         """Push a message onto stack, store up to MESSAGE_LIMIT with FIFO."""
         self.messages.append(message)
-        if len(self.messages) > self.MESSAGE_LIMIT:
-            self.messages = self.messages[-self.MESSAGE_LIMIT :]
-        if self.MODEL_REQUIRES_TOOLS:
-            # cant clip the message list between tool
-            # and tool_call else llm will error
-            while (
-                self.messages[0].get("role")
-                if isinstance(self.messages[0], dict)
-                else getattr(self.messages[0], "role", None)
-            ) == "tool":
-                self.messages.pop(0)
+        if len(self.messages) > self.MESSAGE_LIMIT and 0:
+            # When trimming messages, preserve the proper sequence for tool calls
+            if self.MODEL_REQUIRES_TOOLS:
+                # Find the last assistant message with tool_calls
+                last_tool_call_index = -1
+                for i in range(len(self.messages) - 1, -1, -1):
+                    msg = self.messages[i]
+                    if isinstance(msg, dict) and msg.get("role") == "assistant" and "tool_calls" in msg:
+                        last_tool_call_index = i
+                        break
+                
+                if last_tool_call_index >= 0:
+                    # Keep messages from the last tool call onwards
+                    self.messages = self.messages[last_tool_call_index:]
+                else:
+                    # If no tool calls found, just trim from the end
+                    self.messages = self.messages[-self.MESSAGE_LIMIT:]
+            else:
+                self.messages = self.messages[-self.MESSAGE_LIMIT:]
         return self.messages
 
     def build_functions(self) -> list[dict[str, Any]]:
