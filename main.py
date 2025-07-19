@@ -199,3 +199,5 @@ def main() -> None:
 if __name__ == "__main__":
     os.environ["TESTING"] = "False"
     main()
+    from pymsgbox import alert
+    alert(title="Hello", text="Agent ran successfully!")
