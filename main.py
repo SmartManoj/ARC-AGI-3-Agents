@@ -198,6 +198,11 @@ def main() -> None:
 
 if __name__ == "__main__":
     os.environ["TESTING"] = "False"
-    main()
-    from pymsgbox import alert
-    alert(title="Hello", text="Agent ran successfully!")
+    try:
+        main()
+    except Exception as e:
+        from pymsgbox import alert
+        alert(title="Error", text=f"Agent ran with error: {e}")
+    else:
+        from pymsgbox import alert
+        alert(title="Success", text="Agent ran successfully!")
