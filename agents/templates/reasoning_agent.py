@@ -4,7 +4,7 @@ import json
 import logging
 import os
 import textwrap
-from typing import Any, Dict, List, Literal
+from typing import Any, Dict, List, Literal, Optional
 
 from openai import OpenAI
 from PIL import Image, ImageDraw, ImageFont
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class ReasoningActionResponse(BaseModel):
     """Action response structure for reasoning agent."""
 
-    name: Literal["ACTION1", "ACTION2", "ACTION3", "ACTION4", "RESET"] = Field(
+    name: Literal["ACTION1", "ACTION2", "ACTION3", "ACTION4", "ACTION5", "ACTION6", "RESET"] = Field(
         description="The action to take."
     )
     reason: str = Field(
@@ -40,6 +40,15 @@ class ReasoningActionResponse(BaseModel):
         min_length=10,
         max_length=2000,
     )
+    x: Optional[str] = Field(
+        description="Coordinate X for ACTION6 (must be integer 0-63)",
+        default=None,
+    )
+    y: Optional[str] = Field(
+        description="Coordinate Y for ACTION6 (must be integer 0-63)",
+        default=None,
+    )
+    
 
 
 class ReasoningAgent(ReasoningLLM):
@@ -173,11 +182,13 @@ class ReasoningAgent(ReasoningLLM):
                 "parameters": schema,
             }
             for action in [
+                GameAction.RESET,
                 GameAction.ACTION1,
                 GameAction.ACTION2,
                 GameAction.ACTION3,
                 GameAction.ACTION4,
-                GameAction.RESET,
+                GameAction.ACTION5,
+                GameAction.ACTION6,
             ]
         ]
         return functions
@@ -205,20 +216,23 @@ class ReasoningAgent(ReasoningLLM):
             """
 You are playing a video game.
 
-Your ultimate goal is to understand the rules of the game and explain them to your colleagues.
+Your ultimate goal is to understand the rules of the game.
 
-The game is complex, and may look like an IQ test.
+The game is super simple.
 
-You need to determine how the game works on your own.
+You need to determine how to win the game on your own.
 
 To do so, we will provide you with a view of the game corresponding to the bird-eye view of the game, along with the raw grid data.
 
-You can do 5 actions:
+You can do 7 actions:
 - RESET (used to start a new game or level)
-- ACTION1 (MOVE_UP)
-- ACTION2 (MOVE_DOWN)
-- ACTION3 (MOVE_LEFT)
-- ACTION4 (MOVE_RIGHT)
+- ACTION1 (Move Up or Rotate)
+- ACTION2 (Move Down or Flip)
+- ACTION3 (Move Left or Undo)
+- ACTION4 (Move Right or Confirm)
+- ACTION5 (Interact or Select)
+- ACTION6 (Click at x,y coordinates)
+
 
 You can do one action at once.
 
@@ -231,17 +245,7 @@ Your goal:
 1. Experiment the game to determine how it works based on the screens and your actions.
 2. Analyse the impact of your actions by comparing the screens.
 
-How to proceed:
-1. Define an hypothesis and an action to validate it.
-2. Once confirmed, store the findings. Summarize and aggregate them so that your colleagues can understand the game based on your learning.
-3. Make sure to understand clearly the game rules, energy, walls, doors, keys, etc.
-
-Hint:
-- The game is a 2D platformer.
-- The player can move up, down, left and right.
-- The player has a blue body and a yellow head.
-- There are walls in black.
-- The door has a pink border and a shape inside.
+Define an hypothesis and an action to validate it.
         """
         )
 
@@ -370,6 +374,16 @@ Hint:
         # Map the reasoning action name to a GameAction
         action = GameAction.from_name(action_response.name)
 
+        # Set coordinates for ACTION6
+        if action == GameAction.ACTION6:
+            try:
+                x = int(action_response.x) if action_response.x else 0
+                y = int(action_response.y) if action_response.y else 0
+                action.set_data({"x": x, "y": y})
+            except (ValueError, TypeError) as e:
+                logger.warning(f"Invalid coordinates for ACTION6: x={action_response.x}, y={action_response.y}. Using defaults. Error: {e}")
+                action.set_data({"x": 0, "y": 0})
+
         # Create and attach reasoning metadata
         reasoning_meta = {
             "model": self.MODEL,
@@ -379,9 +393,8 @@ Hint:
             "agent_type": "reasoning_agent",
             "hypothesis": action_response.hypothesis,
             "aggregated_findings": action_response.aggregated_findings,
-            "response_preview": action_response.reason[:200] + "..."
-            if len(action_response.reason) > 200
-            else action_response.reason,
+            "short_description": action_response.short_description,
+            "response": action_response.reason,
             "action_chosen": action.name,
             "game_context": {
                 "score": latest_frame.score,
@@ -390,6 +403,9 @@ Hint:
                 "frame_count": len(frames),
             },
         }
+        if action == GameAction.ACTION6:
+            reasoning_meta["x"] = action_response.x
+            reasoning_meta["y"] = action_response.y
         action.reasoning = reasoning_meta
 
         return action
