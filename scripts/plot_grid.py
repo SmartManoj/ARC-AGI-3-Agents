@@ -10,22 +10,22 @@ def load_grid_data():
 def create_color_map():
     """Create color mapping for grid values"""
     return {
-        0: "#FFFFFFFF",
-        1: "#CCCCCCFF",
-        2: "#999999FF",
-        3: "#666666FF",
-        4: "#333333FF",
-        5: "#000000FF",
-        6: "#E53AA3FF",
-        7: "#FF7BCCFF",
-        8: "#F93C31FF",
-        9: "#1E93FFFF",
-        10: "#88D8F1FF",
-        11: "#FFDC00FF",
-        12: "#FF851BFF",
-        13: "#921231FF",
-        14: "#4FCC30FF",
-        15: "#A356D6FF"
+        0: "#FFFFFF",
+        1: "#CCCCCC",
+        2: "#999999",
+        3: "#666666",
+        4: "#333333",
+        5: "#000000",
+        6: "#E53AA3",
+        7: "#FF7BCC",
+        8: "#F93C31",
+        9: "#1E93FF",
+        10: "#88D8F1",
+        11: "#FFDC00",
+        12: "#FF851B",
+        13: "#921231",
+        14: "#4FCC30",
+        15: "#A356D6"
     }
 
 def plot_grid(grid_data, save_path='grid_visualization.png'):
