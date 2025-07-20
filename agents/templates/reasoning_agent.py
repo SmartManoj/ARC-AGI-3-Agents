@@ -120,37 +120,38 @@ class ReasoningAgent(ReasoningLLM):
                 )
 
         # Draw zone coordinates and borders
-        for y in range(0, height, zone_size):
-            for x in range(0, width, zone_size):
-                # Draw zone coordinate label
-                try:
-                    font = ImageFont.load_default()
-                    zone_text = f"({x},{y})"
-                    draw.text(
-                        (x * cell_size + 2, y * cell_size + 2),
-                        zone_text,
-                        fill="#FFFFFF",
-                        font=font,
-                    )
-                except (ImportError, OSError) as e:
-                    logger.debug(f"Could not load font for zone labels: {e}")
-                except Exception as e:
-                    logger.error(f"Failed to draw zone label at ({x},{y}): {e}")
+        if os.environ.get("DRAW_ZONE_COORDINATES", "false").lower() in ["true", '1']:
+            for y in range(0, height, zone_size):
+                for x in range(0, width, zone_size):
+                    # Draw zone coordinate label
+                    try:
+                        font = ImageFont.load_default()
+                        zone_text = f"({x},{y})"
+                        draw.text(
+                            (x * cell_size + 2, y * cell_size + 2),
+                            zone_text,
+                            fill="#FFFFFF",
+                            font=font,
+                        )
+                    except (ImportError, OSError) as e:
+                        logger.debug(f"Could not load font for zone labels: {e}")
+                    except Exception as e:
+                        logger.error(f"Failed to draw zone label at ({x},{y}): {e}")
 
-                # Draw zone boundary
-                zone_width = min(zone_size, width - x) * cell_size
-                zone_height = min(zone_size, height - y) * cell_size
-                draw.rectangle(
-                    [
-                        x * cell_size,
-                        y * cell_size,
-                        x * cell_size + zone_width,
-                        y * cell_size + zone_height,
-                    ],
-                    fill=None,
-                    outline="#FFD700",  # gold border for zone
-                    width=2,
-                )
+                    # Draw zone boundary
+                    zone_width = min(zone_size, width - x) * cell_size
+                    zone_height = min(zone_size, height - y) * cell_size
+                    draw.rectangle(
+                        [
+                            x * cell_size,
+                            y * cell_size,
+                            x * cell_size + zone_width,
+                            y * cell_size + zone_height,
+                        ],
+                        fill=None,
+                        outline="#FFD700",  # gold border for zone
+                        width=2,
+                    )
 
         # Convert to bytes
         buffer = io.BytesIO()
