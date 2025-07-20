@@ -61,7 +61,7 @@ def cleanup(
 
 def main() -> None:
     log_level = logging.INFO
-    if os.environ.get("DEBUG", "False") == "True":
+    if os.environ.get("DEBUG", "False").lower() in ['1', "true"]:
         log_level = logging.DEBUG
 
     logger.setLevel(log_level)
