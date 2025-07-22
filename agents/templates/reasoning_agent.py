@@ -233,7 +233,6 @@ You can do 7 actions:
 - ACTION5 (Interact or Select)
 - ACTION6 (Click at x,y coordinates)
 
-
 You can do one action at once.
 
 Every time an action is performed we will provide you with the previous screen and the current screen.
@@ -246,6 +245,8 @@ Your goal:
 2. Analyse the impact of your actions by comparing the screens.
 
 Define an hypothesis and an action to validate it.
+
+HINT: Focus on the maps in the game to win the game.
         """
         )
 
