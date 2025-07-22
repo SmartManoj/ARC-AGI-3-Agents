@@ -13,7 +13,7 @@ from .recorder import Recorder
 from .structs import FrameData, GameAction, GameState, Scorecard
 from .tracing import trace_agent_session
 
-logger = logging.getLogger()
+logger = logging.getLogger('arc')
 
 
 class Agent(ABC):

@@ -13,7 +13,7 @@ from .structs import Scorecard
 if TYPE_CHECKING:
     from .agent import Agent
 
-logger = logging.getLogger()
+logger = logging.getLogger('arc')
 
 
 class Swarm:

@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from .agent import Agent
 
 # Module-level variables
-logger = logging.getLogger()
+logger = logging.getLogger('arc')
 is_initialized = False
 agentops_client: Optional[Any] = None
 

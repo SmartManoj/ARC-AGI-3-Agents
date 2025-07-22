@@ -19,7 +19,7 @@ from agents.templates.llm_agents import LLM
 
 from ..agent import Agent
 
-logger = logging.getLogger()
+logger = logging.getLogger('arc')
 
 
 class SmolCodingAgent(LLM, Agent):

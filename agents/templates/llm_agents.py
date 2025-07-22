@@ -10,7 +10,7 @@ from openai import OpenAI as OpenAIClient
 from ..agent import Agent
 from ..structs import FrameData, GameAction, GameState
 
-logger = logging.getLogger()
+logger = logging.getLogger('arc')
 
 
 class LLM(Agent):

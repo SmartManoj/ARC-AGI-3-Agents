@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 from ..structs import FrameData, GameAction
 from .llm_agents import ReasoningLLM
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('arc')
 
 
 class ReasoningActionResponse(BaseModel):

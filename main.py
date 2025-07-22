@@ -20,7 +20,7 @@ import requests
 from agents import AVAILABLE_AGENTS, Swarm
 from agents.tracing import initialize as init_agentops
 
-logger = logging.getLogger()
+logger = logging.getLogger('arc')
 
 SCHEME = os.environ.get("SCHEME", "http")
 HOST = os.environ.get("HOST", "localhost")
