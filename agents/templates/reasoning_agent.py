@@ -277,6 +277,8 @@ HINT: Focus on the maps in the game to win the game.
                 function_args["name"] = tool_call.function.name
                 return ReasoningActionResponse(**function_args)
 
+            with open('response.json', 'w') as f:
+                json.dump(response.choices[0].message.content, f)
             raise ValueError("LLM did not return a tool call.")
 
         except Exception as e:
