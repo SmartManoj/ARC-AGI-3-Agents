@@ -15,6 +15,7 @@ from .llm_agents import ReasoningLLM
 
 logger = logging.getLogger('arc')
 
+draw_zone_coordinates = os.environ.get("DRAW_ZONE_COORDINATES", "false").lower() in ["true", '1']
 
 class ReasoningActionResponse(BaseModel):
     """Action response structure for reasoning agent."""
@@ -129,7 +130,7 @@ class ReasoningAgent(ReasoningLLM):
                 )
 
         # Draw zone coordinates and borders
-        if os.environ.get("DRAW_ZONE_COORDINATES", "false").lower() in ["true", '1']:
+        if draw_zone_coordinates:
             for y in range(0, height, zone_size):
                 for x in range(0, width, zone_size):
                     # Draw zone coordinate label
@@ -233,6 +234,8 @@ You can do 7 actions:
 - ACTION5 (Interact or Select)
 - ACTION6 (Click at x,y coordinates)
 
+ACTION1-5 is a no-op in the current game.
+
 You can do one action at once.
 
 Every time an action is performed we will provide you with the previous screen and the current screen.
@@ -248,7 +251,7 @@ Define an hypothesis and an action to validate it.
 
 HINT: Focus on the maps in the game to win the game.
         """
-        )
+        ) + 'Golden color lines are drawn on the map for you to easily identify the coordinates.' if draw_zone_coordinates else ''
 
     def call_llm_with_structured_output(
         self, messages: List[Dict[str, Any]]
