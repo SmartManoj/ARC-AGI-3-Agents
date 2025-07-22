@@ -66,7 +66,7 @@ class Scorecard(BaseModel):
 
     games: list[str] = Field(default_factory=list, exclude=True)
     cards: dict[str, Card] = Field(default_factory=dict)
-    source_url: Optional[str] = None
+    source_url: Optional[str] = 'https://github.com/SmartManoj/ARC-AGI-3-Agents'
     tags: Optional[list[str]] = None
     opaque: Optional[Any] = Field(default=None)
     card_id: str = ""
