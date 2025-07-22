@@ -25,7 +25,7 @@ class ReasoningActionResponse(BaseModel):
     reason: str = Field(
         description="Detailed reasoning for choosing this action",
         min_length=10,
-        max_length=2000,
+        max_length=5000,
     )
     short_description: str = Field(
         description="Brief description of the action", min_length=5, max_length=500
