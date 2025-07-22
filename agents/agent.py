@@ -75,10 +75,13 @@ class Agent(ABC):
             and self.action_counter <= self.MAX_ACTIONS
         ):
             action = self.choose_action(self.frames, self.frames[-1])
+            action_data = ''
+            if action.name == 'ACTION6':
+                action_data = f' ({action.action_data.x}, {action.action_data.y})'
             if frame := self.take_action(action):
                 self.append_frame(frame)
                 logger.info(
-                    f"{self.game_id} - {action.name}: count {self.action_counter}, score {frame.score}, avg fps {self.fps})"
+                    f"{self.game_id} - {action.name}{action_data}: count {self.action_counter}, score {frame.score}, avg fps {self.fps})"
                 )
             self.action_counter += 1
 
