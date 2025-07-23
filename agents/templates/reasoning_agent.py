@@ -300,7 +300,7 @@ HINT: Focus on the maps in the game to win the game.
     def define_next_action(self, latest_frame: FrameData) -> ReasoningActionResponse:
         """Define next action for the reasoning agent."""
         # Generate map image
-        current_grid = latest_frame.frame[0] if latest_frame.frame else []
+        current_grid = latest_frame.frame[-1] if latest_frame.frame else []
         map_image = self.generate_grid_image_with_zone(current_grid)
 
         # Build messages
