@@ -250,6 +250,14 @@ Your goal:
 Define an hypothesis and an action to validate it.
 
 HINT: Focus on the maps in the game to win the game.
+
+Level 1 Solution:
+Top right map: 1st cell (blue); 2nd cell (red)
+Game grid: 9 x 9
+initial state: all cells are blue (except central piece)
+central piece is the key map which again consists of 9*9 sub-cells consists of gray and white sub-cells. centre sub-cell is the color map. Replace all outer cells in the place of white sub-cells with the color of the center sub-cell. Remaining with the gray sub-cells.
+
+Using the above rule, the solution is to click the second (25, 15), fourth (10, 30), sixth (40, 30) and eight (25, 45) cells in the top right map to turn into red.
         """
         ) + 'Golden color lines are drawn on the map for you to easily identify the coordinates.' if draw_zone_coordinates else ''
 
