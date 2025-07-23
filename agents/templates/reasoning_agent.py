@@ -223,7 +223,7 @@ central piece is the key map which again consists of 9*9 sub-cells consists of g
 Using the above rule, the solution is to click the second (25, 15), fourth (10, 30), sixth (40, 30) and eight (25, 45) cells in the top right map to turn into red.
 '''
         return textwrap.dedent(
-            """
+            f"""
 You are playing a video game.
 
 Your ultimate goal is to understand the rules of the game.
@@ -257,6 +257,8 @@ Your goal:
 2. Analyse the impact of your actions by comparing the screens.
 
 Define an hypothesis and an action to validate it.
+
+You are currently at level {latest_frame.score + 1}.
 
 HINT: Focus on the maps in the game to win the game.
         """
