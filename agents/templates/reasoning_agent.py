@@ -16,6 +16,7 @@ from .llm_agents import ReasoningLLM
 logger = logging.getLogger('arc')
 
 draw_zone_coordinates = os.environ.get("DRAW_ZONE_COORDINATES", "false").lower() in ["true", '1']
+give_level_1_solution = os.environ.get("GIVE_LEVEL_1_SOLUTION", "false").lower() in ["true", '1']
 
 class ReasoningActionResponse(BaseModel):
     """Action response structure for reasoning agent."""
@@ -213,6 +214,14 @@ class ReasoningAgent(ReasoningLLM):
 
     def build_user_prompt(self, latest_frame: FrameData) -> str:
         """Build the user prompt for hypothesis-driven exploration."""
+        level_1_solution = '''Level 1 Solution:
+Top right map: 1st cell (blue); 2nd cell (red)
+Game grid: 9 x 9
+initial state: all cells arg blue (except central piece)
+central piece is the key map which again consists of 9*9 sub-cells consists of gray and white sub-cells. centre sub-cell is the color map. Replace all outer cells in the place of white sub-cells with the color of the center sub-cell. Remaining with the gray sub-cells.
+
+Using the above rule, the solution is to click the second (25, 15), fourth (10, 30), sixth (40, 30) and eight (25, 45) cells in the top right map to turn into red.
+'''
         return textwrap.dedent(
             """
 You are playing a video game.
@@ -250,16 +259,8 @@ Your goal:
 Define an hypothesis and an action to validate it.
 
 HINT: Focus on the maps in the game to win the game.
-
-Level 1 Solution:
-Top right map: 1st cell (blue); 2nd cell (red)
-Game grid: 9 x 9
-initial state: all cells are blue (except central piece)
-central piece is the key map which again consists of 9*9 sub-cells consists of gray and white sub-cells. centre sub-cell is the color map. Replace all outer cells in the place of white sub-cells with the color of the center sub-cell. Remaining with the gray sub-cells.
-
-Using the above rule, the solution is to click the second (25, 15), fourth (10, 30), sixth (40, 30) and eight (25, 45) cells in the top right map to turn into red.
         """
-        ) + 'Golden color lines are drawn on the map for you to easily identify the coordinates.' if draw_zone_coordinates else ''
+        ) + (level_1_solution if give_level_1_solution else '') + ('Golden color lines are drawn on the map for you to easily identify the coordinates.' if draw_zone_coordinates else '')
 
     def call_llm_with_structured_output(
         self, messages: List[Dict[str, Any]]
@@ -289,7 +290,7 @@ Using the above rule, the solution is to click the second (25, 15), fourth (10, 
                 return ReasoningActionResponse(**function_args)
 
             with open('response.json', 'w') as f:
-                json.dump(response.choices[0].message.content, f)
+                json.dump(response, f)
             raise ValueError("LLM did not return a tool call.")
 
         except Exception as e:
