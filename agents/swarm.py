@@ -81,6 +81,7 @@ class Swarm:
                 agent_name=self.agent_name,
                 ROOT_URL=self.ROOT_URL,
                 record=True,
+                cookies=self._session.cookies,
                 tags=self.tags,
             )
             self.agents.append(a)
