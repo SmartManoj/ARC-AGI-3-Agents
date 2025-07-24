@@ -42,7 +42,7 @@ def do_reset_action(card_id):
         "guid": None,
         "card_id": card_id,
     }
-    response = s.post(
+    response = requests.post(
         f'https://three.arcprize.org/api/cmd/RESET',
         headers=headers,
         json=data
