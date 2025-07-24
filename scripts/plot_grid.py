@@ -1,11 +1,18 @@
 import json
 import matplotlib.pyplot as plt
 import numpy as np
-
+fp = r'recordings\ft09-a14010482fbd.reasoningagent.gemini-2.5-pro.with-observe.high.20250726083833..recording.jsonl'
+frame_number = 5
 def load_grid_data():
-    """Load grid data from grid.json"""
-    with open('scripts/grid.json', 'r') as f:
-        return json.load(f)[-1]
+    # fp=r'C:\Users\smart\Desktop\GD\ARC-AGI-3-Engine\backend\game_data\ft09-16726c5b26ff\level_1\final.json'
+    """Load grid data from jsonl"""
+    with open(fp, 'r') as f:
+        if fp.endswith('.json'):
+            data = json.load(f)
+            return data['grid']
+        else:
+            data = json.loads(f.readlines()[(frame_number-1)*2])
+            return data['data']['frame'][-1]
 
 def create_color_map():
     """Create color mapping for grid values"""
