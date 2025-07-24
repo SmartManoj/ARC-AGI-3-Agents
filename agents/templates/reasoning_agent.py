@@ -50,6 +50,10 @@ class ReasoningActionResponse(BaseModel):
         description="Coordinate Y for ACTION6 (must be integer 0-63)",
         default=None,
     )
+    object_number: Optional[str] = Field(
+        description="Object number to click (1-9) for ACTION6",
+        default=None,
+    )
     
 
 
@@ -74,10 +78,10 @@ class ReasoningAgent(ReasoningLLM):
         self.history = []
         self.screen_history = []
 
-    def generate_grid_image_with_zone(
+    def generate_annotated_grid_image(
         self, grid: List[List[int]], cell_size: int = 40, zone_size: int = 16
     ) -> bytes:
-        """Generate PIL image of the grid with colored cells and zone coordinates."""
+        """Generate PIL image of the grid with colored cells and zone coordinates with anotation."""
         if not grid or not grid[0]:
             # Create empty image
             img = Image.new("RGB", (200, 200), color="black")
@@ -164,10 +168,131 @@ class ReasoningAgent(ReasoningLLM):
                         width=2,
                     )
 
+        # Detect objects and add numbered labels
+        try:
+            import sys
+            sys.path.append('../../ARC Tools')
+            from arc_tools.grid import Grid, detect_objects, Square
+            
+            # Create Grid object and detect objects
+            grid_obj = Grid(grid)
+            
+            # Look for 12x12 square objects specifically
+            square_12 = Square(12)
+            detected_objects = detect_objects(grid_obj, required_object=square_12, ignore_corners=True)
+            
+            # If we don't find exactly 9 objects, try a more general approach
+            if len(detected_objects) != 9:
+                detected_objects = detect_objects(grid_obj, ignore_corners=True, max_count=20)
+                filtered_objects = []
+                for obj in detected_objects:
+                    # Look for objects that are approximately 12x12 (the main grid boxes)
+                    if (10 <= obj.width <= 14 and 10 <= obj.height <= 14 and 
+                        obj.width < width * 0.3 and obj.height < height * 0.3):
+                        filtered_objects.append(obj)
+                detected_objects = filtered_objects[:9]  # Take only the first 9
+            
+            # Draw black boxes around detected objects and add labels
+            for i, obj in enumerate(detected_objects):
+                # Get object boundaries
+                x1, y1 = obj.region.x1, obj.region.y1
+                x2, y2 = obj.region.x2, obj.region.y2
+                
+                # Draw black rectangle around object
+                draw.rectangle(
+                    [
+                        x1 * cell_size,
+                        y1 * cell_size,
+                        (x2 + 1) * cell_size,
+                        (y2 + 1) * cell_size,
+                    ],
+                    outline="#000000",
+                    width=3,
+                )
+                
+                # Add label at center of object
+                center_x = (x1 + x2) / 2 * cell_size + cell_size // 2
+                center_y = (y1 + y2) / 2 * cell_size + cell_size // 2
+                
+                # Draw white circle background for label
+                label_radius = 15
+                draw.ellipse(
+                    [
+                        center_x - label_radius,
+                        center_y - label_radius,
+                        center_x + label_radius,
+                        center_y + label_radius,
+                    ],
+                    fill="#FFFFFF",
+                    outline="#000000",
+                    width=2,
+                )
+                
+                # Add number label
+                try:
+                    font = ImageFont.load_default()
+                    draw.text(
+                        (center_x, center_y),
+                        str(i + 1),
+                        fill="#000000",
+                        font=font,
+                        anchor="mm",  # center alignment
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to draw number label: {e}")
+                    
+        except Exception as e:
+            logger.warning(f"Failed to detect objects for annotation: {e}")
+
         # Convert to bytes
         buffer = io.BytesIO()
         img.save(buffer, format="PNG")
         return buffer.getvalue()
+
+    def get_object_coordinates(self, grid: List[List[int]], object_number: int) -> tuple[int, int]:
+        """Get the center coordinates of a specific numbered object (1-9)."""
+        try:
+            import sys
+            sys.path.append('../../ARC Tools')
+            from arc_tools.grid import Grid, detect_objects, Square
+            
+            # Create Grid object and detect objects
+            grid_obj = Grid(grid)
+            
+            # Look for 12x12 square objects specifically
+            square_12 = Square(12)
+            detected_objects = detect_objects(grid_obj, required_object=square_12, ignore_corners=True)
+            
+            # If we don't find exactly 9 objects, try a more general approach
+            if len(detected_objects) != 9:
+                detected_objects = detect_objects(grid_obj, ignore_corners=True, max_count=20)
+                filtered_objects = []
+                for obj in detected_objects:
+                    # Look for objects that are approximately 12x12 (the main grid boxes)
+                    if (10 <= obj.width <= 14 and 10 <= obj.height <= 14 and 
+                        obj.width < len(grid[0]) * 0.3 and obj.height < len(grid) * 0.3):
+                        filtered_objects.append(obj)
+                detected_objects = filtered_objects[:9]  # Take only the first 9
+            
+            # Check if object number is valid
+            if object_number < 1 or object_number > len(detected_objects):
+                logger.warning(f"Invalid object number: {object_number}. Available: 1-{len(detected_objects)}")
+                return (32, 32)  # Default center coordinates
+            
+            # Get the specified object
+            obj = detected_objects[object_number - 1]  # Convert to 0-based index
+            
+            # Calculate center coordinates
+            x1, y1 = obj.region.x1, obj.region.y1
+            x2, y2 = obj.region.x2, obj.region.y2
+            center_x = (x1 + x2) // 2
+            center_y = (y1 + y2) // 2
+            
+            return (center_x, center_y)
+            
+        except Exception as e:
+            logger.error(f"Failed to get object coordinates: {e}")
+            return (0, 0)
 
     def build_functions(self) -> list[dict[str, Any]]:
         """Build JSON function description of game actions for LLM."""
@@ -220,7 +345,7 @@ Game grid: 9 x 9
 initial state: all cells arg blue (except central piece)
 central piece is the key map which again consists of 9*9 sub-cells consists of gray and white sub-cells. centre sub-cell is the color map. Replace all outer cells in the place of white sub-cells with the color of the center sub-cell. Remaining with the gray sub-cells.
 
-Using the above rule, the solution is to click the second (25, 15), fourth (10, 30), sixth (40, 30) and eight (25, 45) cells in the top right map to turn into red.
+Using the above rule, the solution is to click the 2, 4, 6 and 8th objects in the square grid to turn into red.
 '''
         return textwrap.dedent(
             f"""
@@ -234,6 +359,8 @@ You need to determine how to win the game on your own.
 
 To do so, we will provide you with a view of the game corresponding to the bird-eye view of the game, along with the raw grid data.
 
+IMPORTANT: The game screen shows numbered objects (1-9) with black frame. You can click on these objects by specifying the object number (1-9).
+
 You can do 7 actions:
 - RESET (used to start a new game or level)
 - ACTION1 (Move Up or Rotate)
@@ -241,7 +368,7 @@ You can do 7 actions:
 - ACTION3 (Move Left or Undo)
 - ACTION4 (Move Right or Confirm)
 - ACTION5 (Interact or Select)
-- ACTION6 (Click at x,y coordinates)
+- ACTION6 (click object by number 1-9)
 
 ACTION1-5 is a no-op in the current game.
 
@@ -259,6 +386,8 @@ Your goal:
 Define an hypothesis and an action to validate it.
 
 You are currently at level {latest_frame.score + 1}.
+
+IMPORTANT: New levels will be automatically started. No need to click anything to start.
 
 HINT: Focus on the maps in the game to win the game.
         """
@@ -303,7 +432,7 @@ HINT: Focus on the maps in the game to win the game.
         """Define next action for the reasoning agent."""
         # Generate map image
         current_grid = latest_frame.frame[-1] if latest_frame.frame else []
-        map_image = self.generate_grid_image_with_zone(current_grid)
+        map_image = self.generate_annotated_grid_image(current_grid)
 
         # Build messages
         system_prompt = self.build_user_prompt(latest_frame)
@@ -391,16 +520,8 @@ HINT: Focus on the maps in the game to win the game.
         # Map the reasoning action name to a GameAction
         action = GameAction.from_name(action_response.name)
 
-        # Set coordinates for ACTION6
-        if action == GameAction.ACTION6:
-            try:
-                x = int(action_response.x) if action_response.x else 0
-                y = int(action_response.y) if action_response.y else 0
-                action.set_data({"x": x, "y": y})
-            except (ValueError, TypeError) as e:
-                logger.warning(f"Invalid coordinates for ACTION6: x={action_response.x}, y={action_response.y}. Using defaults. Error: {e}")
-                action.set_data({"x": 0, "y": 0})
-
+        
+            
         # Create and attach reasoning metadata
         reasoning_meta = {
             "model": self.MODEL,
@@ -420,9 +541,28 @@ HINT: Focus on the maps in the game to win the game.
                 "frame_count": len(frames),
             },
         }
+        # Set coordinates for ACTION6
         if action == GameAction.ACTION6:
-            reasoning_meta["x"] = action_response.x
-            reasoning_meta["y"] = action_response.y
+            try:
+                # Check if object_number is provided
+                object_number = int(action_response.object_number)
+                if object_number:
+                    current_grid = latest_frame.frame[-1] if latest_frame.frame else []
+                    x, y = self.get_object_coordinates(current_grid, object_number)
+                    logger.info(f"Object {object_number} selected, coordinates: ({x}, {y})")
+                else:
+                    # Fall back to direct coordinates
+                    x = int(action_response.x) if action_response.x else 0
+                    y = int(action_response.y) if action_response.y else 0
+                    logger.info(f"Direct coordinates provided: ({x}, {y})")
+                
+                action.set_data({"x": x, "y": y})
+            except (ValueError, TypeError) as e:
+                logger.warning(f"Invalid coordinates for ACTION6: x={action_response.x}, y={action_response.y}, object_number={action_response.object_number}. Using defaults. Error: {e}")
+                action.set_data({"x": 0, "y": 0})
+            reasoning_meta["x"] = x
+            reasoning_meta["y"] = y
+            reasoning_meta["object_number"] = object_number
         action.reasoning = reasoning_meta
 
         return action
