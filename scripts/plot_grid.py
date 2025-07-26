@@ -1,6 +1,8 @@
 import json
 import matplotlib.pyplot as plt
 import numpy as np
+from agents.structs import FrameColor
+
 fp = r'recordings\ft09-a14010482fbd.reasoningagent.gemini-2.5-pro.with-observe.high.20250726083833..recording.jsonl'
 frame_number = 5
 def load_grid_data():
@@ -13,29 +15,6 @@ def load_grid_data():
         else:
             data = json.loads(f.readlines()[(frame_number-1)*2])
             return data['data']['frame'][-1]
-
-from enum import Enum
-class MyEnum(Enum):
-    def __repr__(self):
-        return f"{self.__class__.__name__}.{self.name}"
-    
-class FrameColor(MyEnum):
-    WHITE = 0
-    LIGHT_GRAY = 1
-    GRAY = 2
-    DARK_GRAY = 3
-    CHARCOAL = 4
-    BLACK = 5
-    MAGENTA = 6
-    PINK = 7
-    RED = 8
-    BLUE = 9
-    SKY_BLUE = 10
-    YELLOW = 11
-    ORANGE = 12
-    MAROON = 13
-    GREEN = 14
-    PURPLE = 15
 
 def create_color_map():
     """Create color mapping for grid values"""

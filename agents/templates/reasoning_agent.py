@@ -10,7 +10,7 @@ from openai import OpenAI
 from PIL import Image, ImageDraw, ImageFont
 from pydantic import BaseModel, Field
 
-from ..structs import FrameData, GameAction
+from ..structs import FrameData, GameAction, FrameColor
 from .llm_agents import ReasoningLLM
 
 logger = logging.getLogger('arc')
@@ -351,6 +351,12 @@ central piece is the key map which again consists of 9*9 sub-cells consists of g
 
 first state that in which small cell the gray small cells are in if center cell is divided into 3*3 small grids, in which cells.
 '''
+        
+        # Create color mapping information
+        color_info = "Color Mapping:\n"
+        for color in FrameColor:
+            color_info += f"- {color.value}: {color.name}\n"
+        
         return textwrap.dedent(
             f"""
 You are playing a video game.
@@ -362,6 +368,8 @@ The game is super simple.
 You need to determine how to win the game on your own.
 
 To do so, we will provide you with a view of the game corresponding to the bird-eye view of the game, along with the raw grid data.
+
+{color_info}
 
 IMPORTANT: The game screen shows numbered objects (1-9) with black frame. You can click on these objects by specifying the object number (1-9).
 

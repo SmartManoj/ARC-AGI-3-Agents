@@ -7,6 +7,30 @@ from pydantic import BaseModel, Field, computed_field, field_validator
 MAX_REASONING_BYTES = 16 * 1024  # 16KB Max
 
 
+class MyEnum(Enum):
+    def __repr__(self):
+        return f"{self.__class__.__name__}.{self.name}"
+
+
+class FrameColor(MyEnum):
+    WHITE = 0
+    LIGHT_GRAY = 1
+    GRAY = 2
+    DARK_GRAY = 3
+    CHARCOAL = 4
+    BLACK = 5
+    MAGENTA = 6
+    PINK = 7
+    RED = 8
+    BLUE = 9
+    SKY_BLUE = 10
+    YELLOW = 11
+    ORANGE = 12
+    MAROON = 13
+    GREEN = 14
+    PURPLE = 15
+
+
 class GameState(str, Enum):
     NOT_PLAYED = "NOT_PLAYED"
     NOT_FINISHED = "NOT_FINISHED"
