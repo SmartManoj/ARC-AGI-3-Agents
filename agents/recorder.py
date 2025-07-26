@@ -19,12 +19,13 @@ class Recorder:
         self.guid = self.get_guid(filename) if filename else (guid or str(uuid.uuid4()))
         self.prefix: str = prefix
         recordings_dir = get_recordings_dir()
+        dt = datetime.now().strftime("%y%m%d%H%M%S")
         self.filename = (
             os.path.join(recordings_dir, filename)
             if filename
             else os.path.join(
                 recordings_dir,
-                f"{self.prefix}.{self.guid}{RECORDING_SUFFIX}",
+                f"{self.prefix}.{dt}.{RECORDING_SUFFIX}",
             )
         )
         # Create directory once during initialization
