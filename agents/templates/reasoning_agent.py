@@ -70,13 +70,16 @@ class ReasoningAgent(ReasoningLLM):
         super().__init__(*args, **kwargs)
         self.history: List[ReasoningActionResponse] = []
         self.screen_history: List[bytes] = []
+        self.grid_history: List[List[List[int]]] = []
         self.max_screen_history = 10  # Limit screen history to prevent memory leak
+        self.max_grid_history = 10  # Limit grid history to prevent memory leak
         self.client = OpenAI(api_key=os.environ.get("LLM_API_KEY", ""), base_url=os.environ.get("LLM_BASE_URL", ""))
 
     def clear_history(self) -> None:
         """Clear all history when transitioning between levels."""
         self.history = []
         self.screen_history = []
+        self.grid_history = []
 
     def generate_annotated_grid_image(
         self, grid: List[List[int]], cell_size: int = 40, zone_size: int = 16
@@ -443,8 +446,9 @@ HINT: Focus on the maps in the game to win the game.
         # Build user message with images
         user_message_content: List[Dict[str, Any]] = []
 
-        # Use the last screen from history as the 'previous_screen'
+        # Use the last screen and grid from history as the 'previous_screen' and 'previous_grid'
         previous_screen = self.screen_history[-1] if self.screen_history else None
+        previous_grid = self.grid_history[-1] if self.grid_history else None
 
         if previous_screen:
             user_message_content.extend(
@@ -457,6 +461,15 @@ HINT: Focus on the maps in the game to win the game.
                             "detail": "high",
                         },
                     },
+                ]
+            )
+        
+        if previous_grid:
+            previous_grid_text = self.pretty_print_3d([previous_grid])
+            user_message_content.extend(
+                [
+                    {"type": "text", "text": "Previous grid data:"},
+                    {"type": "text", "text": previous_grid_text},
                 ]
             )
 
@@ -486,10 +499,16 @@ HINT: Focus on the maps in the game to win the game.
         # Call LLM with structured output
         result = self.call_llm_with_structured_output(messages)
 
-        # Store current screen for next iteration (after using it)
+        # Store current screen and grid for next iteration (after using it)
         self.screen_history.append(map_image)
         if len(self.screen_history) > self.max_screen_history:
             self.screen_history.pop(0)
+        
+        # Store current grid for next iteration
+        current_grid = latest_frame.frame[-1] if latest_frame.frame else []
+        self.grid_history.append(current_grid)
+        if len(self.grid_history) > self.max_grid_history:
+            self.grid_history.pop(0)
 
         return result
 
