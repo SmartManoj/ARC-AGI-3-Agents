@@ -472,6 +472,21 @@ HINT: Focus on the maps in the game to win the game.
                     {"type": "text", "text": previous_grid_text},
                 ]
             )
+            # Compute and show grid changes
+            current_grid = latest_frame.frame[-1] if latest_frame.frame else []
+            changes = []
+            if previous_grid and current_grid and len(previous_grid) == len(current_grid) and len(previous_grid[0]) == len(current_grid[0]):
+                for y in range(len(previous_grid)):
+                    for x in range(len(previous_grid[0])):
+                        old = previous_grid[y][x]
+                        new = current_grid[y][x]
+                        if old != new:
+                            changes.append(f"({x},{y}): {old} -> {new}")
+            if changes:
+                changes_text = "Grid changes (x, y: old -> new):\n" + "\n".join(changes)
+            else:
+                changes_text = "No grid changes."
+            user_message_content.append({"type": "text", "text": changes_text})
 
         raw_grid_text = self.pretty_print_3d(latest_frame.frame)
         user_message_text = f"Your previous action was: {json.dumps(latest_action.model_dump() if latest_action else None, indent=2)}\n\nAttached are the visual screen and raw grid data.\n\nRaw Grid:\n{raw_grid_text}\n\nWhat should you do next?"
