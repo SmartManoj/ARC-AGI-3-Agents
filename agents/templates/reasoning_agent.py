@@ -17,6 +17,7 @@ logger = logging.getLogger('arc')
 
 draw_zone_coordinates = os.environ.get("DRAW_ZONE_COORDINATES", "false").lower() in ["true", '1']
 give_level_1_solution = os.environ.get("GIVE_LEVEL_1_SOLUTION", "false").lower() in ["true", '1']
+include_images = os.environ.get("INCLUDE_IMAGES", "true").lower() in ["true", '1']
 
 class ReasoningActionResponse(BaseModel):
     """Action response structure for reasoning agent."""
@@ -450,7 +451,7 @@ HINT: Focus on the maps in the game to win the game.
         previous_screen = self.screen_history[-1] if self.screen_history else None
         previous_grid = self.grid_history[-1] if self.grid_history else None
 
-        if previous_screen:
+        if previous_screen and include_images:
             user_message_content.extend(
                 [
                     {"type": "text", "text": "Previous screen:"},
@@ -489,21 +490,25 @@ HINT: Focus on the maps in the game to win the game.
             user_message_content.append({"type": "text", "text": changes_text})
 
         raw_grid_text = self.pretty_print_3d(latest_frame.frame)
-        user_message_text = f"Your previous action was: {json.dumps(latest_action.model_dump() if latest_action else None, indent=2)}\n\nAttached are the visual screen and raw grid data.\n\nRaw Grid:\n{raw_grid_text}\n\nWhat should you do next?"
+        user_message_text = f"Your previous action was: {json.dumps(latest_action.model_dump() if latest_action else None, indent=2)}\n\nRaw Grid:\n{raw_grid_text}\n\nWhat should you do next?"
 
-        current_image_b64 = base64.b64encode(map_image).decode()
-        user_message_content.extend(
-            [
-                {"type": "text", "text": user_message_text},
-                {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:image/png;base64,{current_image_b64}",
-                        "detail": "high",
+        if include_images:
+            user_message_text += "\n\nAttached is the visual screen."
+            current_image_b64 = base64.b64encode(map_image).decode()
+            user_message_content.extend(
+                [
+                    {"type": "text", "text": user_message_text},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{current_image_b64}",
+                            "detail": "high",
+                        },
                     },
-                },
-            ]
-        )
+                ]
+            )
+        else:
+            user_message_content.append({"type": "text", "text": user_message_text})
 
         # Build messages
         messages: List[Dict[str, Any]] = [
