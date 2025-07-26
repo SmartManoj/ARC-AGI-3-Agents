@@ -14,6 +14,29 @@ def load_grid_data():
             data = json.loads(f.readlines()[(frame_number-1)*2])
             return data['data']['frame'][-1]
 
+from enum import Enum
+class MyEnum(Enum):
+    def __repr__(self):
+        return f"{self.__class__.__name__}.{self.name}"
+    
+class FrameColor(MyEnum):
+    WHITE = 0
+    LIGHT_GRAY = 1
+    GRAY = 2
+    DARK_GRAY = 3
+    CHARCOAL = 4
+    BLACK = 5
+    MAGENTA = 6
+    PINK = 7
+    RED = 8
+    BLUE = 9
+    SKY_BLUE = 10
+    YELLOW = 11
+    ORANGE = 12
+    MAROON = 13
+    GREEN = 14
+    PURPLE = 15
+
 def create_color_map():
     """Create color mapping for grid values"""
     return {
@@ -79,6 +102,16 @@ def plot_grid(grid_data, save_path='grid_visualization.png'):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
     fig.patch.set_facecolor('black')  # Set figure background to black
     
+    def format_coord(x, y):
+        if x >= -0.5 and y >= -0.5:
+            col = int(x + 0.5)
+            row = int(y + 0.5)
+            value = grid[row, col]
+            return f'(row,col) = ({row},{col})\t(x,y) = ({col},{row})\t\t\n[{value}]  | {FrameColor(value).name}\t\t|'
+        return ''
+
+    ax1.format_coord = format_coord
+    ax2.format_coord = format_coord
     # Plot 1: Original grid
     unique_values = np.unique(grid)
     
