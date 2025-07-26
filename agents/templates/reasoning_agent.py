@@ -345,10 +345,10 @@ class ReasoningAgent(ReasoningLLM):
         level_1_solution = '''Level 1 Solution:
 Top right map: 1st cell (blue); 2nd cell (red)
 Game grid: 9 x 9
-initial state: all cells arg blue (except central piece)
+initial state: all cells are blue (except central piece)
 central piece is the key map which again consists of 9*9 sub-cells consists of gray and white sub-cells. centre sub-cell is the color map. Replace all outer cells in the place of white sub-cells with the color of the center sub-cell. Remaining with the gray sub-cells.
 
-Using the above rule, the solution is to click the 2, 4, 6 and 8th objects in the square grid to turn into red.
+first state that in which small cell the gray small cells are in if center cell is divided into 3*3 small grids, in which cells.
 '''
         return textwrap.dedent(
             f"""
@@ -365,7 +365,7 @@ To do so, we will provide you with a view of the game corresponding to the bird-
 IMPORTANT: The game screen shows numbered objects (1-9) with black frame. You can click on these objects by specifying the object number (1-9).
 
 You can do 7 actions:
-- RESET (used to start a new game or level)
+- RESET (Initialize or restart the game state to level 1)
 - ACTION1 (Move Up or Rotate)
 - ACTION2 (Move Down or Flip)
 - ACTION3 (Move Left or Undo)
