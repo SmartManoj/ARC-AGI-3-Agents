@@ -605,7 +605,7 @@ HINT: Focus on the maps in the game to win the game.
                 
             except (ValueError, TypeError) as e:
                 logger.warning(f"Invalid coordinates for ACTION6: x={action_response.x}, y={action_response.y}, object_number={action_response.object_number}. Using defaults. Error: {e}")
-                x = y = 0
+                x = y = object_number = 0
             action.set_data({"x": x, "y": y})
             reasoning_meta["x"] = x
             reasoning_meta["y"] = y
