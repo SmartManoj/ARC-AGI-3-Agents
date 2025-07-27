@@ -603,10 +603,10 @@ HINT: Focus on the maps in the game to win the game.
                     y = int(action_response.y) if action_response.y else 0
                     logger.info(f"Direct coordinates provided: ({x}, {y})")
                 
-                action.set_data({"x": x, "y": y})
             except (ValueError, TypeError) as e:
                 logger.warning(f"Invalid coordinates for ACTION6: x={action_response.x}, y={action_response.y}, object_number={action_response.object_number}. Using defaults. Error: {e}")
-                action.set_data({"x": 0, "y": 0})
+                x = y = 0
+            action.set_data({"x": x, "y": y})
             reasoning_meta["x"] = x
             reasoning_meta["y"] = y
             reasoning_meta["object_number"] = object_number
