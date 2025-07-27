@@ -198,7 +198,7 @@ class MCPAgent(Agent):
         
         # Initialize FastMCP
         try:
-            self.mcp = FastMCP()
+            self.mcp = FastMCP(stateless_http=True)
             
             # Register game action handler
             @self.mcp.tool()
