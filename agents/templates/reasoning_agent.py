@@ -597,7 +597,7 @@ HINT: Focus on the maps in the game to win the game.
                 if object_number:
                     current_grid = latest_frame.frame[-1] if latest_frame.frame else []
                     x, y = self.get_object_coordinates(current_grid, object_number)
-                    logger.debug(f"Object {object_number} selected, coordinates: ({x}, {y})")
+                    logger.info(f"Object {object_number} selected, coordinates: ({x}, {y})")
                 else:
                     # Fall back to direct coordinates
                     x = int(action_response.x) if action_response.x else 0
