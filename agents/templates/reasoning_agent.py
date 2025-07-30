@@ -347,9 +347,9 @@ class ReasoningAgent(ReasoningLLM):
 Top right map: 1st cell (blue); 2nd cell (red)
 Game grid: 9 x 9
 initial state: all cells are blue (except central piece)
-central piece is the key map which again consists of 9*9 sub-cells consists of gray and white sub-cells. centre sub-cell is the color map. Replace all outer cells in the place of white sub-cells with the color of the center sub-cell. Remaining with the gray sub-cells.
+central piece is the key map which again consists of 3*3 sub-cells consists of gray and white sub-cells and key sub-cell which is at its center. Replace all outer cells in the place of white sub-cells with the color of the key sub-cell. Remaining with the gray sub-cells.
 
-first state that in which small cell the gray small cells are in if center cell is divided into 3*3 small grids, in which cells.
+first state that in which sub cells, the gray small cells are in, if center cell is divided into 3*3 sub cells.
 '''
         
         # Create color mapping information
