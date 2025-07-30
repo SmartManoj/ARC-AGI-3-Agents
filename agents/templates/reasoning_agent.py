@@ -344,15 +344,14 @@ class ReasoningAgent(ReasoningLLM):
     def build_user_prompt(self, latest_frame: FrameData) -> str:
         """Build the user prompt for hypothesis-driven exploration."""
         level_1_solution = '''Level 1 Solution:
-Top right map: 1st cell (blue); 2nd cell (red)
-Game grid: 9 x 9
-initial state: all cells are blue (except central piece)
-central piece is the key map which again consists of 3*3 sub-cells consists of gray and white sub-cells and key sub-cell which is at its center. Replace all outer cells in the place of white sub-cells with the color of the key sub-cell. Remaining with the gray sub-cells.
 
-first state that in which sub cells, the gray small cells are in, if center cell is divided into 3*3 sub cells.
+Top‑right map: Shows the available colors that can be used for changing the outer cells.
 
-ACTION1-5 are no-ops in this game.
-Central object is also a no-op.
+**Step 1:** Identify which positions in the key (central cell) are white sub‑cells (positions **2, 4, 6, 8**).
+**Step 2:** Change the outer cells at those positions (**2, 4, 6, 8**) to the **center color**.
+**Step 3:** Identify which positions in the key (central cell) are gray sub‑cells (positions **1, 3, 7, 9**).
+**Step 4:** Change the outer cells at those positions (**1, 3, 7, 9**) to a **non‑center color**.
+
 '''
         
         # Create color mapping information
