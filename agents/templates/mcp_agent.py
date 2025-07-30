@@ -29,7 +29,6 @@ class MCPAgent(Agent):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        self.game_running = False
         self.mcp = None
 
     def get_current_frame(self) -> Optional[FrameData]:
@@ -85,9 +84,8 @@ class MCPAgent(Agent):
         """Execute the action from MCP client immediately."""
         logger.info(f"MCP action received: {action_request.action}")
         
-        # Execute the action immediately if game is running
-        if self.game_running:
-            self._execute_action(action_request)
+        # Execute the action immediately
+        return self._execute_action(action_request)
 
     def _execute_action(self, action_request: MCPActionRequest):
         """Execute the action immediately."""
@@ -97,8 +95,8 @@ class MCPAgent(Agent):
             
             # Set coordinates for ACTION6
             if action_request.action == "ACTION6":
-                x = action_request.x or 0
-                y = action_request.y or 0
+                x = action_request.x
+                y = action_request.y
                 
                 # If object_number is provided, get coordinates from current frame
                 if action_request.object_number:
@@ -114,7 +112,13 @@ class MCPAgent(Agent):
                     except Exception as e:
                         logger.warning(f"Failed to get object coordinates: {e}")
                         x, y = 32, 32  # Default center coordinates
-                
+                else:
+                    if x is None or y is None:
+                        # return error
+                        return {
+                            "success": False,
+                            "error": "Failed to execute action - no object number or coordinates provided"
+                        }
                 action.set_data({"x": x, "y": y})
                 logger.info(f"Executing ACTION6 at coordinates ({x}, {y})")
             else:
@@ -144,9 +148,25 @@ class MCPAgent(Agent):
                 self.append_frame(frame)
                 logger.info(f"MCP action executed: {action.name}, score: {frame.score}")
                 self.action_counter += 1
+                
+                return {
+                    "success": True,
+                    "message": f"Action '{action_request.action}' executed successfully",
+                    "score": frame.score,
+                    "state": frame.state.name
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": "Failed to execute action - no frame returned"
+                }
 
         except Exception as e:
             logger.error(f"Error executing MCP action: {e}")
+            return {
+                "success": False,
+                "error": f"Error executing MCP action: {e}"
+            }
 
     def is_done(self, frames: List[FrameData], latest_frame: FrameData) -> bool:
         """Check if the game is done."""
@@ -171,16 +191,13 @@ class MCPAgent(Agent):
                 object_number=action_data.get("object_number")
             )
             
-            # Execute the action immediately
-            self.execute_action(action_request)
+            # Execute the action immediately and return the response
+            response = self.execute_action(action_request)
             
             action_name = action_data.get("action")
             logger.info(f"Game action '{action_name}' executed via FastMCP")
             
-            return {
-                "success": True,
-                "message": f"Action '{action_name}' executed successfully"
-            }
+            return response
             
         except Exception as e:
             logger.error(f"Error handling game action: {e}")
@@ -192,9 +209,6 @@ class MCPAgent(Agent):
     def main(self) -> None:
         """Override main method to run FastMCP server directly in main."""
         logger.info("Starting MCP agent with FastMCP server")
-        
-        # Mark game as running
-        self.game_running = True
         
         # Initialize FastMCP
         try:
@@ -224,5 +238,4 @@ class MCPAgent(Agent):
             return
         finally:
             # Cleanup
-            self.game_running = False
             logger.info("MCP agent cleanup complete") 
