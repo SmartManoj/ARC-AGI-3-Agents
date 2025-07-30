@@ -236,7 +236,7 @@ class LLM(Agent):
                     "assistant": message,
                 }
             )
-        logger.info(f"Received {tokens} tokens, new total {self.token_counter}")
+        # logger.info(f"Received {tokens} tokens, new total {self.token_counter}")
         # handle tool to debug messages:
         # with open("messages.json", "w") as f:
         #     json.dump(
