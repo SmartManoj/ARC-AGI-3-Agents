@@ -350,6 +350,9 @@ initial state: all cells are blue (except central piece)
 central piece is the key map which again consists of 3*3 sub-cells consists of gray and white sub-cells and key sub-cell which is at its center. Replace all outer cells in the place of white sub-cells with the color of the key sub-cell. Remaining with the gray sub-cells.
 
 first state that in which sub cells, the gray small cells are in, if center cell is divided into 3*3 sub cells.
+
+ACTION1-5 are no-ops in this game.
+Central object is also a no-op.
 '''
         
         # Create color mapping information
@@ -381,8 +384,6 @@ You can do 7 actions:
 - ACTION4 (Move Right or Confirm)
 - ACTION5 (Interact or Select)
 - ACTION6 (click object by number 1-9)
-
-ACTION1-5 is a no-op in the current game.
 
 You can do one action at once.
 
