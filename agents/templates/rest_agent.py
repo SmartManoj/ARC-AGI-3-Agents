@@ -82,15 +82,13 @@ class RestAgent(Agent):
             return (0, 0)
 
     def execute_action(self, action_request: ActionRequest):
-        logger.info(f"action received: {action_request.action}")
         try:
             # Convert action request to GameAction
             action_name = action_request.action
-            if action_name == "START":
-                action_name = "RESET"
             action = GameAction.from_name(action_name)
             
             # Set coordinates for ACTION6
+            x = y = None
             if action_name == "ACTION6":
                 x = action_request.x
                 y = action_request.y
@@ -117,9 +115,6 @@ class RestAgent(Agent):
                             "error": "Failed to execute action - no object number or coordinates provided"
                         }
                 action.set_data({"x": x, "y": y})
-                logger.info(f"Executing ACTION6 at coordinates ({x}, {y})")
-            else:
-                logger.info(f"Executing action: {action_request.action}")
 
             current_frame = self.get_current_frame()
             action.reasoning = {
@@ -140,7 +135,9 @@ class RestAgent(Agent):
                     logger.info(f"Received guid from server: {self.guid}")
                 
                 self.append_frame(frame_data)
-                logger.info(f"action executed: {action.name}, score: {frame_data.score}")
+                
+                extra = f' ({x}, {y})' if action.name == "ACTION6" else ''
+                logger.info(f"action executed: {action.name}{extra}, score: {frame_data.score}")
                 self.action_counter += 1
                 
                 return {
@@ -176,17 +173,9 @@ class RestAgent(Agent):
     async def handle_game_action(self, action_data: Dict[str, Any]) -> Dict[str, Any]:
         """Handle game action from FastAPI."""
         try:
-            # Create action request
             action_request = ActionRequest(**action_data)
-            
-            # Execute the action immediately and return the response
             response = self.execute_action(action_request)
-            
-            action_name = action_data.get("action")
-            logger.info(f"Game action '{action_name}' executed via FastAPI")
-            
             return response
-            
         except Exception as e:
             logger.error(f"Error handling game action: {e}")
             return {
@@ -199,6 +188,9 @@ class RestAgent(Agent):
         logger.info("Starting agent with FastAPI server")
         
         try:
+            # start the game
+            self.execute_action(ActionRequest(action="START"))
+
             app = FastAPI()
 
             @app.get("/")

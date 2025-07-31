@@ -191,7 +191,10 @@ class GameAction(Enum):
     @classmethod
     def from_name(cls, name: str) -> "GameAction":
         try:
-            return cls[name.upper()]
+            name = name.upper()
+            if name == "START":
+                return cls.RESET
+            return cls[name]
         except KeyError:
             raise ValueError(f"No GameAction with name '{name}'")
 
