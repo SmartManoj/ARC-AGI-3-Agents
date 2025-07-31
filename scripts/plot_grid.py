@@ -1,6 +1,9 @@
 import json
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from agents.structs import FrameColor
 
 fp = r'recordings\ft09-a14010482fbd.reasoningagent.gemini-2.5-pro.with-observe.high.20250726083833..recording.jsonl'
@@ -43,7 +46,6 @@ def plot_grid(grid_data, save_path='grid_visualization.png'):
     grid = np.array(grid_data)
     
     # Import and use detect_objects
-    import sys
     sys.path.append('../ARC Tools')
     from arc_tools.grid import Grid, detect_objects, Color
     
