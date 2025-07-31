@@ -83,12 +83,6 @@ class MCPAgent(Agent):
     def execute_action(self, action_request: MCPActionRequest):
         """Execute the action from MCP client immediately."""
         logger.info(f"MCP action received: {action_request.action}")
-        
-        # Execute the action immediately
-        return self._execute_action(action_request)
-
-    def _execute_action(self, action_request: MCPActionRequest):
-        """Execute the action immediately."""
         try:
             # Convert MCP action request to GameAction
             action = GameAction.from_name(action_request.action)
