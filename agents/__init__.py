@@ -8,6 +8,7 @@ from .swarm import Swarm
 from .templates.llm_agents import LLM, FastLLM, GuidedLLM, ReasoningLLM
 from .templates.random_agent import Random
 from .templates.reasoning_agent import ReasoningAgent
+from .templates.rest_agent import RestAgent
 from .templates.mcp_agent import MCPAgent
 from .templates.smolagents import SmolCodingAgent, SmolVisionAgent
 
@@ -25,6 +26,7 @@ for rec in Recorder.list():
 
 # update the agent dictionary to include subclasses of LLM class
 AVAILABLE_AGENTS["reasoningagent"] = ReasoningAgent
+AVAILABLE_AGENTS["restagent"] = RestAgent
 AVAILABLE_AGENTS["mcpagent"] = MCPAgent
 
 __all__ = [
@@ -35,6 +37,7 @@ __all__ = [
     "ReasoningLLM",
     "GuidedLLM",
     "ReasoningAgent",
+    "RestAgent",
     "MCPAgent",
     "SmolCodingAgent",
     "SmolVisionAgent",
