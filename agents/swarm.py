@@ -71,6 +71,7 @@ class Swarm:
 
         # submit start of scorecard
         self.card_id = self.open_scorecard()
+        logger.info(f"Scorecard opened: {self.card_id}")
 
         # create all the agents
         for i in range(len(self.GAMES)):
