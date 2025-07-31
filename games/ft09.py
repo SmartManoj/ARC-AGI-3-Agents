@@ -30,12 +30,9 @@ grid_data = load_grid_data(frame_number)
 from arc_tools.grid import Grid, detect_objects, GridRegion, GridPoint
 from arc_tools.plot import plot_grids, plot_grid
 from arc_tools.grid import Square
-level_number = 3
-if level_number < 3:
-    square_size = 12
-else:
-    square_size = 6
+
 grid = Grid(grid_data)
+print(grid.width, grid.height)
 # grid = grid.crop(GridRegion([GridPoint(1, 1), GridPoint(grid.width-2, grid.height-2)]))
 # crop corner
 objs = detect_objects(grid,ignore_corners=1, required_object=Square(),ignore_color=FrameColor(4))
@@ -74,7 +71,11 @@ for key_obj in key_objs:
             print(sub_cell_id, obj_idx, obj.region)
             if obj_idx not in final_answers:
                 final_answers.append(obj_idx)
-if 0:
+print(final_answers)
+from pymsgbox import confirm
+if not confirm('Continue?') == 'OK':
+    exit()
+else:
     for obj_idx in final_answers:
         obj = objs[obj_idx-1]
         x1, y1 = obj.region.x1, obj.region.y1
