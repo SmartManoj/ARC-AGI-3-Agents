@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-RECORDING_SUFFIX = ".recording.jsonl"
+RECORDING_SUFFIX = "recording.jsonl"
 
 
 def get_recordings_dir() -> str:
