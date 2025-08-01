@@ -119,6 +119,7 @@ class APIAgent(Agent):
             current_frame = self.get_current_frame()
             action.reasoning = {
                 "agent_type": "api_agent",
+                'action_chosen': action.name,
                 "game_context": {
                     "score": current_frame.score if current_frame else 0,
                     "state": current_frame.state.name if current_frame else "UNKNOWN",
@@ -126,6 +127,10 @@ class APIAgent(Agent):
                     "frame_count": len(self.frames),
                 },
             }
+            if action == GameAction.ACTION6:
+                action.reasoning['x'] = x
+                action.reasoning['y'] = y
+                action.reasoning['object_number'] = action_request.object_number
 
             # Execute the action
             if frame_data := self.take_action(action):
