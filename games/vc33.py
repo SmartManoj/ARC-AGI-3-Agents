@@ -41,23 +41,29 @@ def load_grid_data(frame_number):
 
 grid_data = load_grid_data(frame_number)
 grid = Grid(grid_data)
-grid.background_color = FrameColor.GRAY.value
-objs = detect_objects(grid,  single_color_only=0)
+grid.background_color = FrameColor.DARK_GRAY.value
+objs = detect_objects(grid,  single_color_only=0, ignore_corners=1)
+print('number of objs',len(objs))
 main_obj = [obj for obj in objs if obj.height != 1][0]
+# plot_grid(main_obj, show=1)
 objs = detect_objects((main_obj), single_color_only=1)
 print('number of objs',len(objs))
 red_handles = [obj for obj in objs if obj.color == FrameColor.RED.value]
 blue_handles = [obj for obj in objs if obj.color == FrameColor.BLUE.value]
 indicator_objs = []
 floating_objs = []
+small_object_size = min(obj.height for obj in objs if obj.height != 1)
+floating_obj_size = small_object_size * 2
+gate_height = small_object_size * 4
+print('small_object_size', small_object_size)
 gates = []
 for obj in objs:
     if obj.color not in [FrameColor.BLUE.value, FrameColor.RED.value]:
-        if obj.height == 4 and obj.width == 4:
+        if obj.height == small_object_size and obj.width == small_object_size:
             indicator_objs.append(obj)
-        elif obj.height == 16 and obj.width == 4 and obj.color == FrameColor.LIGHT_GRAY.value:
+        elif obj.height == gate_height and obj.width == small_object_size and obj.color == FrameColor.LIGHT_GRAY.value:
             gates.append(obj)
-        elif obj.height == 8 and obj.width == 8:
+        elif obj.height == floating_obj_size and obj.width == floating_obj_size:
             floating_objs.append(obj)
 
 
@@ -76,6 +82,7 @@ for gate in gates:
 
 # arrange water bodies from left to right
 water_bodies.sort(key=lambda x: x.region.x1)
+gates.sort(key=lambda x: x.region.x1)
 for wb_idx,wb in enumerate(water_bodies):
     print('wb', wb.region.x1, wb.region.y1)
 for wb_idx,wb in enumerate(water_bodies):
@@ -83,11 +90,29 @@ for wb_idx,wb in enumerate(water_bodies):
     if wb.region.x1 < floating_objs[0].region.x1 < wb.region.x2:
         target_water_body = wb
         target_water_body_idx = wb_idx
-        print('target_water_body_idx', target_water_body_idx)
+        logger.info(f'target_water_body_idx: {target_water_body_idx}')
         break
-if 0:
+right_side_check = 1
+if 1:
     # same_level
-    times = (water_bodies[1].region.y1 - water_bodies[0].region.y1) // (4*2) 
+    if right_side_check:
+        water_body_idx = 1
+        gate_idx = water_body_idx - 1 if water_body_idx > 1 else 0
+        times = (water_bodies[water_body_idx].region.y1 - (gates[gate_idx].region.y2+1)) // small_object_size 
+        logger.info((water_bodies[water_body_idx].region.y1, gates[gate_idx].region.y2+1))
+        logger.info(times)
+        if water_body_idx+1 < len(water_bodies):
+            max_times = (water_bodies[water_body_idx+1].height // small_object_size )
+            print(max_times)
+    else:
+        water_body_idx = 1
+        times = (water_bodies[water_body_idx].region.y1 - gates[water_body_idx-1].region.y2) // small_object_size 
+        logger.info((water_bodies[water_body_idx].region.y1 , gates[water_body_idx-1].region.y2+1))
+        logger.info(times)
+        if water_body_idx+1 < len(water_bodies):
+            max_times = (water_bodies[water_body_idx+1].height // small_object_size )
+            print(max_times)
+    exit()
 # plot_grids(indicator_objs)
 for indicator_obj in indicator_objs:
     times = (indicator_obj.region.y1 - target_water_body.region.y1 )//4
