@@ -46,6 +46,7 @@ class Agent(ABC):
         self,
         card_id: str,
         game_id: str,
+        game_idx: int,
         agent_name: str,
         ROOT_URL: str,
         record: bool,
@@ -55,6 +56,7 @@ class Agent(ABC):
         self.ROOT_URL = ROOT_URL
         self.card_id = card_id
         self.game_id = game_id
+        self.game_idx = game_idx
         self.guid = ""
         self.agent_name = agent_name
         self.tags = tags or []

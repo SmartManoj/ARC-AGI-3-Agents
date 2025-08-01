@@ -91,11 +91,7 @@ class Recorder:
         Example filename: locksmith.random.50.81329339-1951-487c-8bed-e9d4780320f2.recording.jsonl
         Returns: locksmith
         """
-        if "." in filename:
-            parts = filename.split(".")
-            return parts[0]
-        else:
-            return filename
+        return filename.split(".")[0]
 
     @classmethod
     def get_guid(cls, filename: str) -> str:
@@ -103,8 +99,8 @@ class Recorder:
         Example filename: locksmith.random.50.81329339-1951-487c-8bed-e9d4780320f2.recording.jsonl
         Returns: 81329339-1951-487c-8bed-e9d4780320f2
         """
-        if "." in filename:
-            parts = filename.split(".")
+        parts = filename.split(".")
+        if len(parts) > 3:
             return parts[-3]
         else:
             return filename

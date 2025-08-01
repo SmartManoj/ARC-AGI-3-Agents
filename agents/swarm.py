@@ -75,10 +75,11 @@ class Swarm:
 
         # create all the agents
         for i in range(len(self.GAMES)):
-            g = self.GAMES[i % len(self.GAMES)]
+            g = self.GAMES[i]
             a = self.agent_class(
                 card_id=self.card_id,
                 game_id=g,
+                game_idx=i,
                 agent_name=self.agent_name,
                 ROOT_URL=self.ROOT_URL,
                 record=True,

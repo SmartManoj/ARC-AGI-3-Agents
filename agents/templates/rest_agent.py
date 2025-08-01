@@ -212,7 +212,7 @@ class RestAgent(Agent):
             # Start FastAPI server - actions will be executed immediately when received
             logger.info("FastAPI server started - waiting for actions")
             host = os.environ.get('API_HOST', 'localhost')
-            port = os.environ.get('API_PORT', 8000)
+            port = int(os.environ.get('API_PORT', 8000)) + self.game_idx
             uvicorn.run(app, host=host, port=port)
             
         except Exception as e:

@@ -44,7 +44,7 @@ class MCPAgent(RestAgent):
             # Start FastMCP server - actions will be executed immediately when received
             logger.info("FastMCP server started - waiting for actions")
             host = os.environ.get('MCP_HOST', 'localhost')
-            port = os.environ.get('MCP_PORT', 8000)
+            port = int(os.environ.get('MCP_PORT', 8000)) + self.game_idx
             mcp.run(f'streamable-http', host=host, port=port)
             
         except Exception as e:
