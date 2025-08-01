@@ -24,8 +24,8 @@ class ActionRequest(BaseModel):
     object_number: Optional[int] = Field(description="Object number (1-9) for ACTION6", default=None)
 
 
-class RestAgent(Agent):
-    """An agent that receives actions from a REST client."""
+class APIAgent(Agent):
+    """An agent that receives actions from a API client."""
 
     MAX_ACTIONS = 400
 
@@ -118,7 +118,7 @@ class RestAgent(Agent):
 
             current_frame = self.get_current_frame()
             action.reasoning = {
-                "agent_type": "rest_agent",
+                "agent_type": "api_agent",
                 "game_context": {
                     "score": current_frame.score if current_frame else 0,
                     "state": current_frame.state.name if current_frame else "UNKNOWN",
@@ -195,7 +195,7 @@ class RestAgent(Agent):
 
             @app.get("/")
             async def read_root():
-                return {"message": "RestAgent is running"}
+                return {"message": f"API Agent for game {self.game_id} is running"}
             
             @app.get("/execute_action")
             async def execute_action(action: str, x: int = None, y: int = None, object_number: int = None):

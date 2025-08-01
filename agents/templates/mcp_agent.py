@@ -11,11 +11,11 @@ from fastmcp import FastMCP
 
 from ..agent import Agent
 from ..structs import FrameData, GameAction
-from .rest_agent import RestAgent
+from .api_agent import APIAgent
 
 logger = logging.getLogger('arc')
 
-class MCPAgent(RestAgent):
+class MCPAgent(APIAgent):
     """An MCP-enabled agent that receives actions from MCP client using FastMCP."""
 
     MAX_ACTIONS = 400
