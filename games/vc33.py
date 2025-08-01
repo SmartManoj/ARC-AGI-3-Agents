@@ -48,38 +48,62 @@ objs = detect_objects((main_obj), single_color_only=1)
 print('number of objs',len(objs))
 red_handles = [obj for obj in objs if obj.color == FrameColor.RED.value]
 blue_handles = [obj for obj in objs if obj.color == FrameColor.BLUE.value]
+indicator_objs = []
+floating_objs = []
+gates = []
 for obj in objs:
     if obj.color not in [FrameColor.BLUE.value, FrameColor.RED.value]:
         if obj.height == 4 and obj.width == 4:
-            indicator_obj = obj
-        if obj.height == 8 and obj.width == 8:
-            floating_obj = obj
+            indicator_objs.append(obj)
+        elif obj.height == 16 and obj.width == 4 and obj.color == FrameColor.LIGHT_GRAY.value:
+            gates.append(obj)
+        elif obj.height == 8 and obj.width == 8:
+            floating_objs.append(obj)
 
-water_bodies = [obj for obj in objs if obj.color == FrameColor.WHITE.value]
+
+water_bodies = [obj for obj in objs if obj.color == FrameColor.WHITE.value and obj.width !=1]
 # plot_grids(objs)
 for red_handle in red_handles:
     print('red handle', red_handle.region.x1, red_handle.region.y1)
 for blue_handle in blue_handles:
     print('blue handle', blue_handle.region.x1, blue_handle.region.y1)
-print('indicator obj', indicator_obj.region.x1, indicator_obj.region.y1)
-print('floating obj', floating_obj.region.x1, floating_obj.region.y1)
+for indicator_obj in indicator_objs:
+    print('indicator obj', indicator_obj.region.x1, indicator_obj.region.y1)
+for floating_obj in floating_objs:
+    print('floating obj', floating_obj.region.x1, floating_obj.region.y1)
+for gate in gates:
+    print('gate', gate.region.x1, gate.region.y1)
+
+# arrange water bodies from left to right
+water_bodies.sort(key=lambda x: x.region.x1)
+for wb_idx,wb in enumerate(water_bodies):
+    print('wb', wb.region.x1, wb.region.y1)
 for wb_idx,wb in enumerate(water_bodies):
     # find target water body
-    if wb.region.x1 < floating_obj.region.x1 < wb.region.x2:
+    if wb.region.x1 < floating_objs[0].region.x1 < wb.region.x2:
         target_water_body = wb
         target_water_body_idx = wb_idx
+        print('target_water_body_idx', target_water_body_idx)
         break
-
-times = (indicator_obj.region.y1 - target_water_body.region.y1 )//4
+if 0:
+    # same_level
+    times = (water_bodies[1].region.y1 - water_bodies[0].region.y1) // (4*2) 
+# plot_grids(indicator_objs)
+for indicator_obj in indicator_objs:
+    times = (indicator_obj.region.y1 - target_water_body.region.y1 )//4
 print(times)
-if times > 0:
-    handle = blue_handles[target_water_body_idx-1]
+if times > 0 and target_water_body_idx != 1:
+    # blue handle increases in L5
+    if target_water_body_idx in [1,2]:
+        handle = blue_handles[-1]
 else:
-    handle = red_handles[target_water_body_idx-1]
+    if target_water_body_idx in [1,2]:
+        handle = red_handles[-1]
+x, y = handle.region.x1, handle.region.y1
+print('x, y', x, y)
 from pymsgbox import confirm
 if confirm('Continue?') == 'OK':
     for _ in range(abs(times)):
-        x, y = handle.region.x1, handle.region.y1
         execute_action('ACTION6', x=x, y=y)
 
 
