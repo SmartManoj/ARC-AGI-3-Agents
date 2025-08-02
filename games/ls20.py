@@ -39,23 +39,25 @@ def scale_3to2(grid):
     
     return Grid(result)
 
-def scale_2to3(grid):
-    """Scale 6x6 grid to 9x9 by factor 2/3"""
-    if len(grid) != 6 or len(grid[0]) != 6:
-        raise ValueError("Input grid must be 6x6")
+def scale_to_9x9(grid: Grid):
+    """Scale grid to 9x9 by factor"""
+    grid_size = len(grid)
+    new_size = 9
+    result = [[0 for _ in range(new_size)] for _ in range(new_size)]
+    factor = grid_size / new_size
     
-    result = [[0 for _ in range(9)] for _ in range(9)]
-    
-    for i in range(9):
-        for j in range(9):
+    for i in range(new_size):
+        for j in range(new_size):
             # Map 9x9 position to 6x6 position
-            src_i = int(i * 2/3)
-            src_j = int(j * 2/3)
+            src_i = int(i * factor)
+            src_j = int(j * factor)
             
             # Take the value from the source position
             result[i][j] = grid[src_i][src_j]
-    
-    return Grid(result)
+    result = Grid(result)
+    if type(grid) != Grid:
+        result = result.as_sub_grid()
+    return result
 
 def path_to_moves(path):
     moves = []
@@ -73,14 +75,16 @@ def path_to_moves(path):
             moves.append("move_right")
     return moves
 
-def find_path(grid: Grid, start_obj: SubGrid , end_obj: SubGrid) -> Optional[List[Tuple[int, int]]]:
+def find_path(grid: Grid, start_obj: SubGrid , end_obj: SubGrid, scale_factor: int) -> Optional[List[Tuple[int, int]]]:
     """
     Find path from S to E in the grid using BFS.
     Returns list of coordinates (row, col) representing the path.
     """
-    start_pos = start_obj.region.x1 / 8, start_obj.region.y1 / 8
-    end_pos = end_obj.region.x1 // 8 * 8 / 8, end_obj.region.y1 // 8 * 8 / 8
-    grid = compress_grid(grid, start_pos, end_pos)
+    zone_size = 8 // scale_factor
+    start_pos = start_obj.region.x1 // zone_size, start_obj.region.y1 // zone_size
+    end_pos = end_obj.region.x1 // zone_size * zone_size / zone_size, end_obj.region.y1 // zone_size * zone_size / zone_size
+    grid = compress_grid(grid, start_pos, end_pos, scale_factor)
+    print(start_obj.region.start, end_obj.region.start  )
     # print(start_pos, end_pos)
     # for row in grid:
     #     print(''.join(row))
@@ -99,7 +103,7 @@ def find_path(grid: Grid, start_obj: SubGrid , end_obj: SubGrid) -> Optional[Lis
                 end = (row, col)
     
     if not start or not end:
-        return None
+        return []
     
     # BFS to find shortest path
     queue = deque([(start, [start])])
@@ -127,19 +131,21 @@ def find_path(grid: Grid, start_obj: SubGrid , end_obj: SubGrid) -> Optional[Lis
                 new_path = path + [(new_row, new_col)]
                 queue.append(((new_row, new_col), new_path))
     
-    return None
+    return []
 
-def compress_grid(grid: Grid, start_pos: Tuple[int, int], end_pos: Tuple[int, int]):
+def compress_grid(grid: Grid, start_pos: Tuple[int, int], end_pos: Tuple[int, int], scale_factor: int):
     """Debug function to visualize grid and path"""
     compressed_grid = []
     # zone 8*8 ; grid 64*64
     #  now print zone row 5 only
+    zone_size = 8 // scale_factor
     zone_row_idx_start = 0
-    zone_row_idx_end = 7
+    zone_row_idx_end = len(grid) // zone_size - 1
 
-    for zone_row_idx, zone_row in enumerate(grid[zone_row_idx_start*8:(zone_row_idx_end+1)*8:8], start=zone_row_idx_start):
+
+    for zone_row_idx, zone_row in enumerate(grid[zone_row_idx_start*zone_size:(zone_row_idx_end+1)*zone_size:zone_size], start=zone_row_idx_start):
         row = []
-        for zone_col_idx, zone_col in enumerate(zone_row[::8]):
+        for zone_col_idx, zone_col in enumerate(zone_row[::zone_size]):
             if (zone_col_idx, zone_row_idx) == start_pos:
                 row.append('S')
             elif (zone_col_idx, zone_row_idx) == end_pos:
@@ -171,7 +177,7 @@ def load_grid_data(frame_number):
 
 grid_data = load_grid_data(frame_number)
 grid = Grid(grid_data)
-
+grid.background_color = FrameColor.CHARCOAL.value
 objs = detect_objects(grid, ignore_color=FrameColor.DARK_GRAY)
 # filter red color; lives
 # green - level indicator
@@ -184,32 +190,62 @@ print('number of objs',len(objs))
 # key_chooser - 6*6
 # key - 9*9
 key_chooser = None
+key_color_chooser = None
 refill_steps_obj = None
 available_steps = []
+
 for obj in objs:
-    if FrameColor.ORANGE.value in obj.colors:
+    # check top row is fully
+    if all(value == FrameColor.ORANGE.value for value in obj[0]):
         locksmith = obj
+        break
+scale_factor = 8 // locksmith.height 
+refill_steps_size = 4 / scale_factor
+key_chooser_size = 6 / scale_factor
+key_color_chooser_size = 8 / scale_factor
+path_directions_to_refill = []
+for obj in objs:
+    if obj == locksmith:
+        continue
     elif FrameColor.BLACK.value in obj.colors:
         lock = obj
-        expected_key = scale_2to3(detect_objects(Grid(lock))[0])
-        expected_key = expected_key.replace_color(FrameColor.BLACK, FrameColor(grid.background_color))
+        expected_key = scale_to_9x9(detect_objects(Grid(lock))[0])
+        expected_key = expected_key.replace_color(FrameColor.BLACK, FrameColor(grid.background_color), replace_in_parent_grid=False)
 
-    elif obj.height == 6 and obj.width == 6:
+    elif obj.height == key_chooser_size  and obj.width == key_chooser_size:
         key_chooser = obj
     elif obj.height == 9 and obj.width == 9:
         key = obj
-    elif obj.height == 4 and obj.width == 4:
+    elif obj.height == refill_steps_size and obj.width == refill_steps_size:
         refill_steps_obj = obj
+        _ =find_path(grid, locksmith, refill_steps_obj, scale_factor)
+        if len(_) < len(path_directions_to_refill) or not path_directions_to_refill:
+            print(refill_steps_obj.region.start, 'refill_steps_obj')
+            path_directions_to_refill = _
     else:
-        available_steps.append(obj)
-path_directions_to_refill=find_path(grid, locksmith, refill_steps_obj) if refill_steps_obj else None
-if expected_key.compare(key):
+        if obj.height == 1 and obj.width == 1:
+            available_steps.append(obj)
+        elif obj.height == key_color_chooser_size and obj.width == key_color_chooser_size:
+            key_color_chooser = obj
+        elif 0:
+            plot_grid(obj)
+print('-'*20)            
+key_color_mismatch = expected_key.colors != key.colors
+if not key_color_mismatch:
+    # block key color chooser
+    grid[key_color_chooser.region.start.y][key_color_chooser.region.start.x] = grid.background_color
+if key_color_mismatch:
+    if key_color_chooser is None:
+        path_directions = ['move_up', 'move_down']
+    else:
+        path_directions = find_path(grid, locksmith, key_color_chooser, scale_factor)
+elif expected_key.compare(key):
     print('key is correct')
     # go to lock directly
-    path_directions = find_path(grid, locksmith, lock)
+    path_directions = find_path(grid, locksmith, lock, scale_factor)
     if len(path_directions) > len(available_steps):
         path_directions = path_directions_to_refill
-elif (len(available_steps)) != len(path_directions_to_refill):
+elif not path_directions_to_refill or (len(available_steps)) - 2 >= len(path_directions_to_refill):
         print('key is incorrect')
         if key_chooser is None:
             # undo last action & redo,
@@ -219,11 +255,15 @@ elif (len(available_steps)) != len(path_directions_to_refill):
             # go to key_chooser
             # 1 step = 8 cells
             # calculate how many steps to key_chooser
-            path_directions = find_path(grid, locksmith, key_chooser)
-
+            path_directions = find_path(grid, locksmith, key_chooser, scale_factor)
+else:
+    if (len(available_steps)) - 2 < len(path_directions_to_refill):
+        path_directions = path_directions_to_refill
 print(f'path directions: {path_directions}')
 print(f'path directions length: {len(path_directions)}')
+print(f'path directions to refill length: {len(path_directions_to_refill)}')
 print(f'available steps length: {len(available_steps)}')
+# exit()
 from pymsgbox import confirm
 if confirm('Continue?') == 'OK':
     if path_directions:
