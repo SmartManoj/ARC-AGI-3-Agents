@@ -1,5 +1,5 @@
 import game_handler
-
+from pymsgbox import alert
 from game_handler import execute_action
 
 
@@ -84,7 +84,6 @@ def find_path(grid: Grid, start_obj: SubGrid , end_obj: SubGrid, scale_factor: i
     start_pos = start_obj.region.x1 // zone_size, start_obj.region.y1 // zone_size
     end_pos = end_obj.region.x1 // zone_size * zone_size / zone_size, end_obj.region.y1 // zone_size * zone_size / zone_size
     grid = compress_grid(grid, start_pos, end_pos, scale_factor)
-    print(start_obj.region.start, end_obj.region.start  )
     # print(start_pos, end_pos)
     # for row in grid:
     #     print(''.join(row))
@@ -207,6 +206,8 @@ key_chooser_size = 6 / scale_factor
 key_rotator_size = 6 / scale_factor
 key_color_chooser_size = 8 / scale_factor
 path_directions_to_refill = []
+expected_keys = []
+key_color_choosers = []
 for obj in objs:
     if obj == locksmith:
         continue
@@ -215,6 +216,7 @@ for obj in objs:
         expected_key = scale_to_9x9(detect_objects(Grid(lock))[0])
         expected_key.background_color = grid.background_color
         expected_key = expected_key.replace_color(FrameColor.BLACK, FrameColor(grid.background_color), replace_in_parent_grid=False)
+        expected_keys.append(expected_key)
     elif obj.height == key_chooser_size  and obj.width == key_chooser_size and FrameColor.BLUE.value in obj.colors:
         key_chooser = obj
     elif obj.height == 9 and obj.width == 9:
@@ -223,10 +225,11 @@ for obj in objs:
         refill_steps_obj = obj
         _ =find_path(grid, locksmith, refill_steps_obj, scale_factor)
         if len(_) < len(path_directions_to_refill) or not path_directions_to_refill:
-            print(refill_steps_obj.region.start, 'refill_steps_obj')
+            # logger.info(refill_steps_obj.region.start, 'refill_steps_obj')
             path_directions_to_refill = _
-    elif obj.height == key_color_chooser_size and obj.width == key_color_chooser_size:
+    elif obj.height == key_color_chooser_size and obj.width == key_color_chooser_size and obj[0][0] == FrameColor.WHITE.value:
         key_color_chooser = obj
+        key_color_choosers.append(obj)
     elif obj.height == key_rotator_size and obj.width == key_rotator_size and FrameColor.LIGHT_GRAY.value in obj.colors:
         key_rotator = obj
     else:
@@ -234,13 +237,15 @@ for obj in objs:
             available_steps.append(obj)
         elif 0:
             plot_grid(obj)
-
-for key_rotate_count in range(4):
-    if expected_key.get_corner_colors() == key.get_corner_colors():
-        break
-    key = key.rotate()
-logger.info(f'key rotate count: {key_rotate_count}')
-print('-'*20)            
+key_rotate_counts = []
+for i in range(len(expected_keys)):
+    for key_rotate_count in range(4):
+        if expected_keys[i].get_corner_colors().index(FrameColor.BLUE.value) == key.get_corner_colors().index(FrameColor.BLUE.value):
+            break
+        expected_keys[i] = expected_keys[i].rotate()
+    key_rotate_counts.append(key_rotate_count)
+logger.info(f'key rotate counts: {key_rotate_counts}')
+logger.info('-'*20)            
 def recome(grid, locksmith, scale_factor):
     zone_size = 8 // scale_factor
     x, y = locksmith.region.start
@@ -255,8 +260,8 @@ def recome(grid, locksmith, scale_factor):
     elif y+1 < len(compressed_grid[0]) and compressed_grid[x][y+1] == '-':
         return ['move_down', 'move_up']
     return []
-# plot_grids([expected_key, key], show=1)
-key_color_mismatch = expected_key.colors != key.colors
+key_color_mismatch = expected_keys[-1].colors != key.colors and 1
+# plot_grids([*expected_keys, key], show=1)
 if not key_color_mismatch and key_color_chooser:
     # block key color chooser
     grid[key_color_chooser.region.start.y][key_color_chooser.region.start.x] = grid.background_color
@@ -268,36 +273,45 @@ if key_color_mismatch:
         logger.info('recome')
         path_directions = recome(grid, locksmith, scale_factor)
     else:
-        path_directions = find_path(grid, locksmith, key_color_chooser, scale_factor)
-elif expected_key.compare(key):
+        logger.info('key color chooser')
+        path_directions = find_path(grid, locksmith, key_color_choosers[0], scale_factor)
+        # TODO: auto recome
+elif any(expected_key.is_similar(key, ignore_color=1) for expected_key in expected_keys):
     logger.info('key is correct')
     # go to lock directly
     if key_rotate_count == 0:
+        logger.info('lock')
         path_directions = find_path(grid, locksmith, lock, scale_factor)
     else:
+        alert('check avail path')
+        logger.info('key rotator')
         path_directions = find_path(grid, locksmith, key_rotator, scale_factor)
         key_rotate_count -= 1
         for _ in range(key_rotate_count):
             path_directions.extend(recome(grid, locksmith, scale_factor))
-    if len(path_directions) > len(available_steps):
-        path_directions = path_directions_to_refill
+    
 elif not path_directions_to_refill or (len(available_steps)) - 2 >= len(path_directions_to_refill):
         logger.info('key is incorrect')
         if key_chooser is None:
-            # check which direction is available
+            logger.info('recome')
             path_directions = recome(grid, locksmith, scale_factor)
         else:
-            # go to key_chooser
-            # 1 step = 8 cells
-            # calculate how many steps to key_chooser
+            logger.info('key chooser')
             path_directions = find_path(grid, locksmith, key_chooser, scale_factor)
 else:
     if (len(available_steps)) - 2 < len(path_directions_to_refill):
+        logger.info('path directions to refill')
         path_directions = path_directions_to_refill
-print(f'path directions: {path_directions}')
-print(f'path directions length: {len(path_directions)}')
-print(f'path directions to refill length: {len(path_directions_to_refill)}')
-print(f'available steps length: {len(available_steps)}')
+    else:
+        logger.info('no way')
+if len(path_directions) > len(available_steps):
+    logger.info('path directions to refill')
+    path_directions = path_directions_to_refill        
+logger.info('-'*20)
+logger.info(f'path directions: {path_directions}')
+logger.info(f'path directions length: {len(path_directions)}')
+logger.info(f'path directions to refill length: {len(path_directions_to_refill)}')
+logger.info(f'available steps length: {len(available_steps)}')
 # exit()
 from pymsgbox import confirm
 if confirm('Continue?') == 'OK':
