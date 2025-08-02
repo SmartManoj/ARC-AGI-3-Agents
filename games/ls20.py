@@ -234,13 +234,12 @@ for obj in objs:
             available_steps.append(obj)
         elif 0:
             plot_grid(obj)
-if key[0][0] == FrameColor.BLUE.value:
-    for key_rotate_count in range(4):
-        if FrameColor.BLUE.value == expected_key[0][0]:
-            break
-        expected_key = expected_key.rotate()  
-else:
-    key_rotate_count = 0
+
+for key_rotate_count in range(4):
+    if expected_key.get_corner_colors() == key.get_corner_colors():
+        break
+    key = key.rotate()
+logger.info(f'key rotate count: {key_rotate_count}')
 print('-'*20)            
 def recome(grid, locksmith, scale_factor):
     zone_size = 8 // scale_factor
@@ -271,7 +270,7 @@ if key_color_mismatch:
     else:
         path_directions = find_path(grid, locksmith, key_color_chooser, scale_factor)
 elif expected_key.compare(key):
-    print('key is correct')
+    logger.info('key is correct')
     # go to lock directly
     if key_rotate_count == 0:
         path_directions = find_path(grid, locksmith, lock, scale_factor)
@@ -305,10 +304,3 @@ if confirm('Continue?') == 'OK':
     if path_directions:
         for direction in path_directions:
             execute_action(direction)
-        
-    # execute_action('place_object')
-
-
-
-
-
