@@ -54,7 +54,7 @@ def scale_to_9x9(grid: Grid):
             
             # Take the value from the source position
             result[i][j] = grid[src_i][src_j]
-    result = Grid(result)
+    result = Grid(result, grid.background_color)
     if type(grid) != Grid:
         result = result.as_sub_grid()
     return result
@@ -191,6 +191,7 @@ print('number of objs',len(objs))
 # key - 9*9
 key_chooser = None
 key_color_chooser = None
+key_rotator = None
 refill_steps_obj = None
 available_steps = []
 
@@ -202,6 +203,7 @@ for obj in objs:
 scale_factor = 8 // locksmith.height 
 refill_steps_size = 4 / scale_factor
 key_chooser_size = 6 / scale_factor
+key_rotator_size = 6 / scale_factor
 key_color_chooser_size = 8 / scale_factor
 path_directions_to_refill = []
 for obj in objs:
@@ -210,9 +212,9 @@ for obj in objs:
     elif FrameColor.BLACK.value in obj.colors:
         lock = obj
         expected_key = scale_to_9x9(detect_objects(Grid(lock))[0])
+        expected_key.background_color = grid.background_color
         expected_key = expected_key.replace_color(FrameColor.BLACK, FrameColor(grid.background_color), replace_in_parent_grid=False)
-
-    elif obj.height == key_chooser_size  and obj.width == key_chooser_size:
+    elif obj.height == key_chooser_size  and obj.width == key_chooser_size and FrameColor.BLUE.value in obj.colors:
         key_chooser = obj
     elif obj.height == 9 and obj.width == 9:
         key = obj
@@ -222,35 +224,65 @@ for obj in objs:
         if len(_) < len(path_directions_to_refill) or not path_directions_to_refill:
             print(refill_steps_obj.region.start, 'refill_steps_obj')
             path_directions_to_refill = _
+    elif obj.height == key_color_chooser_size and obj.width == key_color_chooser_size:
+        key_color_chooser = obj
+    elif obj.height == key_rotator_size and obj.width == key_rotator_size and FrameColor.LIGHT_GRAY.value in obj.colors:
+        key_rotator = obj
     else:
         if obj.height == 1 and obj.width == 1:
             available_steps.append(obj)
-        elif obj.height == key_color_chooser_size and obj.width == key_color_chooser_size:
-            key_color_chooser = obj
         elif 0:
             plot_grid(obj)
+if key[0][0] == FrameColor.BLUE.value:
+    for key_rotate_count in range(4):
+        if FrameColor.BLUE.value == expected_key[0][0]:
+            break
+        expected_key = expected_key.rotate()  
+else:
+    key_rotate_count = 0
 print('-'*20)            
+def recome(grid, locksmith, scale_factor):
+    zone_size = 8 // scale_factor
+    x, y = locksmith.region.start
+    x, y = x//zone_size, y//zone_size
+    compressed_grid = compress_grid(grid, (x, y), (x, y), scale_factor)
+    if x-1 >= 0 and compressed_grid[x-1][y] == '-':
+        return ['move_left', 'move_right']
+    elif x+1 < len(compressed_grid) and compressed_grid[x+1][y] == '-':
+        return ['move_right', 'move_left']
+    elif y-1 >= 0 and compressed_grid[x][y-1] == '-':
+        return ['move_up', 'move_down']
+    elif y+1 < len(compressed_grid[0]) and compressed_grid[x][y+1] == '-':
+        return ['move_down', 'move_up']
+    return []
+# plot_grids([expected_key, key], show=1)
 key_color_mismatch = expected_key.colors != key.colors
-if not key_color_mismatch:
+if not key_color_mismatch and key_color_chooser:
     # block key color chooser
     grid[key_color_chooser.region.start.y][key_color_chooser.region.start.x] = grid.background_color
 if key_color_mismatch:
     if key_color_chooser is None:
-        path_directions = ['move_up', 'move_down']
+        logger.info('recome')
+        path_directions = recome(grid, locksmith, scale_factor)
     else:
         path_directions = find_path(grid, locksmith, key_color_chooser, scale_factor)
 elif expected_key.compare(key):
     print('key is correct')
     # go to lock directly
-    path_directions = find_path(grid, locksmith, lock, scale_factor)
+    if key_rotate_count == 0:
+        path_directions = find_path(grid, locksmith, lock, scale_factor)
+    else:
+        path_directions = find_path(grid, locksmith, key_rotator, scale_factor)
+        key_rotate_count -= 1
+        for _ in range(key_rotate_count):
+            path_directions.extend(recome(grid, locksmith, scale_factor))
     if len(path_directions) > len(available_steps):
         path_directions = path_directions_to_refill
 elif not path_directions_to_refill or (len(available_steps)) - 2 >= len(path_directions_to_refill):
-        print('key is incorrect')
+        logger.info('key is incorrect')
         if key_chooser is None:
-            # undo last action & redo,
-            # now do up and down
-            path_directions = ['move_up', 'move_down']
+            # check which direction is available
+            path_directions = recome(grid, locksmith, scale_factor)
         else:
             # go to key_chooser
             # 1 step = 8 cells
