@@ -194,6 +194,14 @@ class GameAction(Enum):
             name = name.upper()
             if name == "START":
                 return cls.RESET
+            elif name == "MOVE_UP":
+                return cls.ACTION1
+            elif name == "MOVE_DOWN":
+                return cls.ACTION2
+            elif name == "MOVE_LEFT":
+                return cls.ACTION3
+            elif name == "MOVE_RIGHT":
+                return cls.ACTION4
             return cls[name]
         except KeyError:
             raise ValueError(f"No GameAction with name '{name}'")
