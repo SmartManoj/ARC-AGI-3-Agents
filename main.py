@@ -147,10 +147,10 @@ def main() -> None:
     games = full_games[:]
     if args.game:
         filters = args.game.split(",")
+        game_prefix_map = {gid.split('-')[0]: gid for gid in full_games}
         games = [
-            gid
-            for gid in full_games
-            if any(gid.startswith(prefix) for prefix in filters)
+            game_prefix_map[prefix]
+            for prefix in filters
         ]
 
     logger.info(f"Game list: {games}")
