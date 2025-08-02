@@ -27,7 +27,7 @@ class ActionRequest(BaseModel):
 class APIAgent(Agent):
     """An agent that receives actions from a API client."""
 
-    MAX_ACTIONS = 400
+    MAX_ACTIONS = 5000 # TODO: remove this
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
