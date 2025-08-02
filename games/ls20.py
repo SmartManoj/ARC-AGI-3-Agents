@@ -194,13 +194,14 @@ key_color_chooser = None
 key_rotator = None
 refill_steps_obj = None
 available_steps = []
-
-for obj in objs:
+orange_objs = detect_objects(grid, required_color=FrameColor.ORANGE)
+for obj in orange_objs:
     # check top row is fully
     if all(value == FrameColor.ORANGE.value for value in obj[0]):
         locksmith = obj
+        locksmith_width = obj.width
         break
-scale_factor = 8 // locksmith.height 
+scale_factor = 8 // locksmith_width
 refill_steps_size = 4 / scale_factor
 key_chooser_size = 6 / scale_factor
 key_rotator_size = 6 / scale_factor
@@ -260,6 +261,9 @@ key_color_mismatch = expected_key.colors != key.colors
 if not key_color_mismatch and key_color_chooser:
     # block key color chooser
     grid[key_color_chooser.region.start.y][key_color_chooser.region.start.x] = grid.background_color
+if key_rotate_count == 0 and key_rotator:
+    # block key rotator
+    grid[key_rotator.region.start.y][key_rotator.region.start.x] = grid.background_color
 if key_color_mismatch:
     if key_color_chooser is None:
         logger.info('recome')
