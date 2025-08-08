@@ -16,3 +16,4 @@ tests/recordings/not-a-recording.txt
 messages.json
 *.png
 t?.py
+/games/game_1
