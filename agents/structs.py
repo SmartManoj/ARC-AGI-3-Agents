@@ -1,6 +1,6 @@
 import json
 from enum import Enum
-from typing import Any, Optional, Type, Union
+from typing import Any, Optional, Type, Union, override
 
 from pydantic import BaseModel, Field, computed_field, field_validator
 
@@ -246,7 +246,24 @@ class FrameData(BaseModel):
     action_input: ActionInput = Field(default_factory=lambda: ActionInput())
     guid: Optional[str] = None
     full_reset: bool = False
-    available_actions: list[GameAction] = Field(default_factory=list)
+    available_actions: list[Any] = Field(default_factory=list)
 
     def is_empty(self) -> bool:
         return len(self.frame) == 0
+
+    @override
+    def model_post_init(self, context: Any, /) -> None:
+        new_available_actions = []
+        for action in self.available_actions:
+            if action == 1:
+                new_available_actions.append("move_up")
+            elif action == 2:
+                new_available_actions.append("move_down")
+            elif action == 3:
+                new_available_actions.append("move_left")
+            elif action == 4:
+                new_available_actions.append("move_right")
+            elif action == 6:
+                new_available_actions.append("mouse_click")
+        self.available_actions = new_available_actions
+        return super().model_post_init(context)
