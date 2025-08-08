@@ -5,4 +5,4 @@
 @REM python main.py  -g=ft09 -a=mcpagent
 @REM python main.py  -g=ft09 -a=apiagent
 python main.py  -g=ft09 -a=reasoningagent
-python main.py  -a=apiagent -g="ft09,vc33"
+python main.py  -a=apiagent -g="ft09,vc33,ls20"
