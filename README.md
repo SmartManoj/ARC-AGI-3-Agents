@@ -1,3 +1,8 @@
+
+Check docs folder
+
+---
+
 # ARC-AGI-3-Agents
 
 ## Quickstart

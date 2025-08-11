@@ -4,5 +4,5 @@
 @REM uv run main.py --agent=reasoningagent --game=ft09
 @REM python main.py  -g=ft09 -a=mcpagent
 @REM python main.py  -g=ft09 -a=apiagent
-python main.py  -g=ft09 -a=reasoningagent
+@REM python main.py  -g=ft09 -a=reasoningagent
 python main.py  -a=apiagent -g="ft09,vc33,ls20"
