@@ -1,13 +1,5 @@
-import game_handler
+
 from pymsgbox import alert
-from game_handler import execute_action
-
-
-import json
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append('../ARC Tools')
 
 from arc_tools.grid import Grid, detect_objects, GridRegion, GridPoint, SubGrid
 from arc_tools.plot import plot_grids, plot_grid
@@ -18,12 +10,12 @@ from typing import List, Tuple, Optional
 
 
 from agents.structs import FrameColor
-from game_handler import execute_action
+
 from glob import glob
 from collections import deque
-game_handler.PORT = 8002
 
-fp = glob(r'C:\Users\smart\Desktop\GD\ARC-AGI-3-Agents\recordings\ls20-*.apiagent.*')[-1]
+
+fp = glob(r'../recordings/ls20-*.apiagent.*')[-1]
 frame_number = None
 # frame_number = 7
 def load_grid_data(frame_number):
@@ -194,4 +186,4 @@ from pymsgbox import confirm
 if confirm('Continue?') == 'OK':
     if path_directions:
         for direction in path_directions:
-            execute_action(direction)
+            print(f"execute_action({direction})")

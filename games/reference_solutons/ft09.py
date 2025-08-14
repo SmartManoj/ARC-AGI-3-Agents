@@ -2,8 +2,6 @@ import json
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append('../ARC Tools')
-
 from arc_tools.grid import Grid, detect_objects, GridRegion, GridPoint
 from arc_tools.plot import plot_grids, plot_grid
 from arc_tools.grid import Square
@@ -12,9 +10,9 @@ from arc_tools.logger import logger
 
 
 from agents.structs import FrameColor
-from game_handler import execute_action
+
 from glob import glob
-fp = glob(r'C:\Users\smart\Desktop\GD\ARC-AGI-3-Agents\recordings\ft09-f340c8e5138e.restagent.*')[-1]
+fp = glob(r'../recordings/ft09-*.restagent.*')[-1]
 print(fp)
 frame_number = None
 # frame_number = 7
@@ -131,8 +129,7 @@ if confirm('Continue?') == 'OK':
         x2, y2 = obj.region.x2, obj.region.y2
         center_x = (x1 + x2) // 2 + centre_frame.region.x1
         center_y = (y1 + y2) // 2 + centre_frame.region.y1
-        res = execute_action('ACTION6', x=center_x, y=center_y)
-        print(res['success'])
+        print(f"execute_action('ACTION6', x={center_x}, y={center_y})")
         coordinates.append((center_x, center_y))
     print('coordinates', coordinates)
 

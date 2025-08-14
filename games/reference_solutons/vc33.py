@@ -1,13 +1,5 @@
-import game_handler
-
-from game_handler import execute_action
 
 
-import json
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append('../ARC Tools')
 
 from arc_tools.grid import Grid, detect_objects, GridRegion, GridPoint
 from arc_tools.plot import plot_grids, plot_grid
@@ -17,11 +9,11 @@ from arc_tools.logger import logger
 
 
 from agents.structs import FrameColor
-from game_handler import execute_action
-from glob import glob
-game_handler.PORT = 8000
 
-fp = glob(r'C:\Users\smart\Desktop\GD\ARC-AGI-3-Agents\recordings\vc33-*.apiagent.*')[-1]
+from glob import glob
+
+
+fp = glob(r'../recordings/vc33-*.apiagent.*')[-1]
 print(fp)
 frame_number = None
 # frame_number = 7
@@ -129,7 +121,7 @@ print('x, y', x, y)
 from pymsgbox import confirm
 if confirm('Continue?') == 'OK':
     for _ in range(abs(times)):
-        execute_action('ACTION6', x=x, y=y)
+            print(f"execute_action('ACTION6', x={x}, y={y})")
 
 
 
