@@ -66,7 +66,7 @@ class Swarm:
         else:
             self.tags.extend(["agent", self.agent_name])
 
-    def main(self) -> Scorecard:
+    def main(self) -> Scorecard | None:
         """The main orchestration loop, continues until all agents are done."""
 
         # submit start of scorecard
@@ -124,16 +124,18 @@ class Swarm:
             json=json.loads(json_str),
             headers=self.headers,
         )
-        
+
         try:
             response_data = r.json()
         except ValueError:
             raise Exception(f"Failed to open scorecard: {r.status_code} - {r.text}")
 
         if not r.ok:
-            raise Exception(f"API error during open scorecard: {r.status_code} - {response_data}")
+            raise Exception(
+                f"API error during open scorecard: {r.status_code} - {response_data}"
+            )
 
-        return response_data["card_id"]
+        return str(response_data["card_id"])
 
     def close_scorecard(self, card_id: str) -> Optional[Scorecard]:
         self.card_id = None
@@ -143,7 +145,6 @@ class Swarm:
             json=json.loads(json_str),
             headers=self.headers,
         )
-        
         try:
             response_data = r.json()
         except ValueError:

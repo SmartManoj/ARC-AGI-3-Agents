@@ -66,6 +66,7 @@ class ReasoningAgent(ReasoningLLM):
     MODEL = os.environ.get("LLM_MODEL", "o4-mini")
     MESSAGE_LIMIT = 5
     REASONING_EFFORT = "high"
+    ZONE_SIZE = 16
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
@@ -117,7 +118,7 @@ class ReasoningAgent(ReasoningLLM):
             12: "#FF851B",
             13: "#921231",
             14: "#4FCC30",
-            15: "#A356D6"
+            15: "#A356D6",
         }
 
         # Draw grid cells

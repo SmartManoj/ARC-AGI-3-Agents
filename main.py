@@ -1,7 +1,7 @@
 # ruff: noqa: E402
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path=".env-example")
+load_dotenv(dotenv_path=".env.example")
 load_dotenv(dotenv_path=".env", override=True)
 
 import argparse
@@ -27,7 +27,9 @@ HOST = os.environ.get("HOST", "localhost")
 PORT = os.environ.get("PORT", 8001)
 
 # Hide standard ports in URL
-if (SCHEME == "http" and str(PORT) == "80") or (SCHEME == "https" and str(PORT) == "443"):
+if (SCHEME == "http" and str(PORT) == "80") or (
+    SCHEME == "https" and str(PORT) == "443"
+):
     ROOT_URL = f"{SCHEME}://{HOST}"
 else:
     ROOT_URL = f"{SCHEME}://{HOST}:{PORT}"
@@ -56,6 +58,11 @@ def cleanup(
             logger.info(json.dumps(scorecard.model_dump(), indent=2))
             swarm.cleanup(scorecard)
         
+        # Provide web link to scorecard
+        if card_id:
+            scorecard_url = f"{ROOT_URL}/scorecards/{card_id}"
+            logger.info(f"View your scorecard online: {scorecard_url}")
+
         # Provide web link to scorecard
         if card_id:
             scorecard_url = f"{ROOT_URL}/scorecards/{card_id}"
